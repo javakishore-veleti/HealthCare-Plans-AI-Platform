@@ -1,9 +1,7 @@
 #!/bin/bash
 
 # =============================================================================
-# Plans Service - Java Source Files Generator
-# =============================================================================
-# Generates all Java source files for plans-service modules
+# Plans Service - Java Source Files Generator (Part 2a - DAO Layer)
 # =============================================================================
 
 set -e
@@ -16,1138 +14,362 @@ CYAN='\033[0;36m'
 NC='\033[0m'
 
 echo -e "${GREEN}==============================================================================${NC}"
-echo -e "${GREEN}              Plans Service - Java Source Files Generator                     ${NC}"
+echo -e "${GREEN}        Plans Service - Part 2a (DAO Layer)                                   ${NC}"
 echo -e "${GREEN}==============================================================================${NC}"
 echo ""
 
-# =============================================================================
-# PLANS-COMMON: Constants (Enums)
-# =============================================================================
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${CYAN}  PLANS-COMMON: Constants${NC}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
+REPO_DIR="$BASE_DIR/plans-dao/src/main/java/com/healthcare/plans/dao/repository"
+mkdir -p "$REPO_DIR"
 
-CONSTANTS_DIR="$BASE_DIR/plans-common/src/main/java/com/healthcare/plans/common/constants"
-mkdir -p "$CONSTANTS_DIR"
+# StateRepository.java
+cat > "$REPO_DIR/StateRepository.java" << 'EOF'
+package com.healthcare.plans.dao.repository;
 
-# PlanStatus.java
-cat > "$CONSTANTS_DIR/PlanStatus.java" << 'EOF'
-package com.healthcare.plans.common.constants;
+import com.healthcare.plans.common.model.State;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-public enum PlanStatus {
-    ACTIVE,
-    INACTIVE,
-    DEPRECATED,
-    PENDING_APPROVAL
+import java.util.List;
+
+@Repository
+public interface StateRepository extends JpaRepository<State, String> {
+    List<State> findByRegion(String region);
+    List<State> findAllByOrderByNameAsc();
 }
 EOF
-echo -e "${GREEN}✓${NC} Created: PlanStatus.java"
+echo -e "${GREEN}✓${NC} Created: StateRepository.java"
 
-# PlanType.java
-cat > "$CONSTANTS_DIR/PlanType.java" << 'EOF'
-package com.healthcare.plans.common.constants;
+# AgeGroupRepository.java
+cat > "$REPO_DIR/AgeGroupRepository.java" << 'EOF'
+package com.healthcare.plans.dao.repository;
 
-public enum PlanType {
-    HMO("Health Maintenance Organization"),
-    PPO("Preferred Provider Organization"),
-    EPO("Exclusive Provider Organization"),
-    POS("Point of Service"),
-    HDHP("High Deductible Health Plan");
+import com.healthcare.plans.common.model.AgeGroup;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-    private final String description;
+import java.util.Optional;
+import java.util.List;
 
-    PlanType(String description) {
-        this.description = description;
-    }
-
-    public String getDescription() {
-        return description;
-    }
+@Repository
+public interface AgeGroupRepository extends JpaRepository<AgeGroup, Long> {
+    Optional<AgeGroup> findByCode(String code);
+    List<AgeGroup> findAllByOrderByMinAgeAsc();
 }
 EOF
-echo -e "${GREEN}✓${NC} Created: PlanType.java"
+echo -e "${GREEN}✓${NC} Created: AgeGroupRepository.java"
 
-# MetalTier.java
-cat > "$CONSTANTS_DIR/MetalTier.java" << 'EOF'
-package com.healthcare.plans.common.constants;
+# PlanCategoryRepository.java
+cat > "$REPO_DIR/PlanCategoryRepository.java" << 'EOF'
+package com.healthcare.plans.dao.repository;
 
-public enum MetalTier {
-    BRONZE(60),
-    SILVER(70),
-    GOLD(80),
-    PLATINUM(90);
+import com.healthcare.plans.common.model.PlanCategory;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-    private final int coveragePercentage;
+import java.util.Optional;
+import java.util.List;
 
-    MetalTier(int coveragePercentage) {
-        this.coveragePercentage = coveragePercentage;
-    }
-
-    public int getCoveragePercentage() {
-        return coveragePercentage;
-    }
+@Repository
+public interface PlanCategoryRepository extends JpaRepository<PlanCategory, Long> {
+    Optional<PlanCategory> findByCode(String code);
+    List<PlanCategory> findAllByOrderByNameAsc();
 }
 EOF
-echo -e "${GREEN}✓${NC} Created: MetalTier.java"
+echo -e "${GREEN}✓${NC} Created: PlanCategoryRepository.java"
 
-# ProviderType.java
-cat > "$CONSTANTS_DIR/ProviderType.java" << 'EOF'
-package com.healthcare.plans.common.constants;
+# SpecialtyRepository.java
+cat > "$REPO_DIR/SpecialtyRepository.java" << 'EOF'
+package com.healthcare.plans.dao.repository;
 
-public enum ProviderType {
-    HOSPITAL,
-    CLINIC,
-    PHARMACY,
-    LAB,
-    IMAGING_CENTER,
-    URGENT_CARE,
-    SPECIALIST_OFFICE
+import com.healthcare.plans.common.model.Specialty;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.Optional;
+import java.util.List;
+
+@Repository
+public interface SpecialtyRepository extends JpaRepository<Specialty, Long> {
+    Optional<Specialty> findByCode(String code);
+    List<Specialty> findAllByOrderByNameAsc();
 }
 EOF
-echo -e "${GREEN}✓${NC} Created: ProviderType.java"
+echo -e "${GREEN}✓${NC} Created: SpecialtyRepository.java"
 
-# NetworkStatus.java
-cat > "$CONSTANTS_DIR/NetworkStatus.java" << 'EOF'
-package com.healthcare.plans.common.constants;
+# PlanRepository.java
+cat > "$REPO_DIR/PlanRepository.java" << 'EOF'
+package com.healthcare.plans.dao.repository;
 
-public enum NetworkStatus {
-    IN_NETWORK,
-    OUT_OF_NETWORK
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: NetworkStatus.java"
-
-# NetworkTier.java
-cat > "$CONSTANTS_DIR/NetworkTier.java" << 'EOF'
-package com.healthcare.plans.common.constants;
-
-public enum NetworkTier {
-    TIER_1,
-    TIER_2,
-    TIER_3
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: NetworkTier.java"
-
-# =============================================================================
-# PLANS-COMMON: Models (JPA Entities)
-# =============================================================================
-echo ""
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${CYAN}  PLANS-COMMON: Models (JPA Entities)${NC}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-MODELS_DIR="$BASE_DIR/plans-common/src/main/java/com/healthcare/plans/common/model"
-mkdir -p "$MODELS_DIR"
-
-# BaseEntity.java
-cat > "$MODELS_DIR/BaseEntity.java" << 'EOF'
-package com.healthcare.plans.common.model;
-
-import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
-import java.time.LocalDateTime;
-
-@Getter
-@Setter
-@MappedSuperclass
-public abstract class BaseEntity {
-
-    @CreationTimestamp
-    @Column(name = "created_at", nullable = false, updatable = false)
-    private LocalDateTime createdAt;
-
-    @UpdateTimestamp
-    @Column(name = "updated_at", nullable = false)
-    private LocalDateTime updatedAt;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: BaseEntity.java"
-
-# State.java
-cat > "$MODELS_DIR/State.java" << 'EOF'
-package com.healthcare.plans.common.model;
-
-import jakarta.persistence.*;
-import lombok.*;
-
-@Entity
-@Table(name = "states")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class State {
-
-    @Id
-    @Column(name = "code", length = 2)
-    private String code;
-
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
-
-    @Column(name = "region", length = 50)
-    private String region;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: State.java"
-
-# AgeGroup.java
-cat > "$MODELS_DIR/AgeGroup.java" << 'EOF'
-package com.healthcare.plans.common.model;
-
-import jakarta.persistence.*;
-import lombok.*;
-
-@Entity
-@Table(name = "age_groups")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class AgeGroup extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "code", nullable = false, unique = true, length = 20)
-    private String code;
-
-    @Column(name = "min_age", nullable = false)
-    private Integer minAge;
-
-    @Column(name = "max_age", nullable = false)
-    private Integer maxAge;
-
-    @Column(name = "display_name", nullable = false, length = 50)
-    private String displayName;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: AgeGroup.java"
-
-# PlanCategory.java
-cat > "$MODELS_DIR/PlanCategory.java" << 'EOF'
-package com.healthcare.plans.common.model;
-
-import jakarta.persistence.*;
-import lombok.*;
-
-@Entity
-@Table(name = "plan_categories")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class PlanCategory extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "code", nullable = false, unique = true, length = 50)
-    private String code;
-
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
-
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: PlanCategory.java"
-
-# Specialty.java
-cat > "$MODELS_DIR/Specialty.java" << 'EOF'
-package com.healthcare.plans.common.model;
-
-import jakarta.persistence.*;
-import lombok.*;
-
-@Entity
-@Table(name = "specialties")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Specialty extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(name = "code", nullable = false, unique = true, length = 50)
-    private String code;
-
-    @Column(name = "name", nullable = false, length = 100)
-    private String name;
-
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: Specialty.java"
-
-# Plan.java
-cat > "$MODELS_DIR/Plan.java" << 'EOF'
-package com.healthcare.plans.common.model;
-
-import com.healthcare.plans.common.constants.MetalTier;
 import com.healthcare.plans.common.constants.PlanStatus;
-import com.healthcare.plans.common.constants.PlanType;
-import jakarta.persistence.*;
-import lombok.*;
+import com.healthcare.plans.common.model.Plan;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-@Entity
-@Table(name = "plans", indexes = {
-    @Index(name = "idx_plans_year_state_status", columnList = "year, state_code, status"),
-    @Index(name = "idx_plans_metal_tier_type", columnList = "metal_tier, plan_type")
-})
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class Plan extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @Column(name = "plan_code", nullable = false, unique = true, length = 50)
-    private String planCode;
-
-    @Column(name = "plan_name", nullable = false, length = 200)
-    private String planName;
-
-    @Column(name = "year", nullable = false)
-    private Integer year;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "state_code")
-    private State state;
-
-    @Column(name = "is_national", nullable = false)
-    @Builder.Default
-    private Boolean isNational = false;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "plan_type", nullable = false, length = 20)
-    private PlanType planType;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "metal_tier", nullable = false, length = 20)
-    private MetalTier metalTier;
-
-    @Column(name = "monthly_premium", nullable = false, precision = 10, scale = 2)
-    private BigDecimal monthlyPremium;
-
-    @Column(name = "annual_deductible", nullable = false, precision = 10, scale = 2)
-    private BigDecimal annualDeductible;
-
-    @Column(name = "out_of_pocket_max", nullable = false, precision = 10, scale = 2)
-    private BigDecimal outOfPocketMax;
-
-    @Column(name = "copay_primary", precision = 10, scale = 2)
-    private BigDecimal copayPrimary;
-
-    @Column(name = "copay_specialist", precision = 10, scale = 2)
-    private BigDecimal copaySpecialist;
-
-    @Column(name = "copay_emergency", precision = 10, scale = 2)
-    private BigDecimal copayEmergency;
-
-    @Column(name = "out_of_network_pct")
-    private Integer outOfNetworkPct;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 20)
-    @Builder.Default
-    private PlanStatus status = PlanStatus.ACTIVE;
-
-    @Column(name = "effective_date", nullable = false)
-    private LocalDate effectiveDate;
-
-    @Column(name = "expiration_date")
-    private LocalDate expirationDate;
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "plan_age_groups",
-        joinColumns = @JoinColumn(name = "plan_id"),
-        inverseJoinColumns = @JoinColumn(name = "age_group_id")
-    )
-    @Builder.Default
-    private Set<AgeGroup> ageGroups = new HashSet<>();
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "plan_category_mappings",
-        joinColumns = @JoinColumn(name = "plan_id"),
-        inverseJoinColumns = @JoinColumn(name = "category_id")
-    )
-    @Builder.Default
-    private Set<PlanCategory> categories = new HashSet<>();
-
-    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private Set<PlanInclusion> inclusions = new HashSet<>();
-
-    @OneToMany(mappedBy = "plan", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private Set<PlanExclusion> exclusions = new HashSet<>();
+@Repository
+public interface PlanRepository extends JpaRepository<Plan, UUID>, JpaSpecificationExecutor<Plan> {
+    
+    Optional<Plan> findByPlanCode(String planCode);
+    
+    boolean existsByPlanCode(String planCode);
+    
+    List<Plan> findByYearAndStatus(Integer year, PlanStatus status);
+    
+    @Query("SELECT p FROM Plan p WHERE p.state.code = :stateCode AND p.status = :status")
+    List<Plan> findByStateAndStatus(@Param("stateCode") String stateCode, @Param("status") PlanStatus status);
+    
+    @Query("SELECT p FROM Plan p WHERE p.isNational = true AND p.status = :status")
+    List<Plan> findNationalPlans(@Param("status") PlanStatus status);
+    
+    @Query("SELECT p FROM Plan p LEFT JOIN FETCH p.ageGroups LEFT JOIN FETCH p.categories WHERE p.id = :id")
+    Optional<Plan> findByIdWithDetails(@Param("id") UUID id);
+    
+    @Query("SELECT COUNT(p) FROM Plan p WHERE p.year = :year AND p.status = :status")
+    long countByYearAndStatus(@Param("year") Integer year, @Param("status") PlanStatus status);
 }
 EOF
-echo -e "${GREEN}✓${NC} Created: Plan.java"
+echo -e "${GREEN}✓${NC} Created: PlanRepository.java"
 
-# PlanInclusion.java
-cat > "$MODELS_DIR/PlanInclusion.java" << 'EOF'
-package com.healthcare.plans.common.model;
+# PlanInclusionRepository.java
+cat > "$REPO_DIR/PlanInclusionRepository.java" << 'EOF'
+package com.healthcare.plans.dao.repository;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.healthcare.plans.common.model.PlanInclusion;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
+import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "plan_inclusions", indexes = {
-    @Index(name = "idx_plan_inclusions_plan_id", columnList = "plan_id")
-})
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class PlanInclusion extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id", nullable = false)
-    private Plan plan;
-
-    @Column(name = "coverage_item", nullable = false, length = 100)
-    private String coverageItem;
-
-    @Column(name = "coverage_name", nullable = false, length = 200)
-    private String coverageName;
-
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
-
-    @Column(name = "copay_amount", precision = 10, scale = 2)
-    private BigDecimal copayAmount;
-
-    @Column(name = "coverage_percentage")
-    private Integer coveragePercentage;
-
-    @Column(name = "prior_auth_required", nullable = false)
-    @Builder.Default
-    private Boolean priorAuthRequired = false;
+@Repository
+public interface PlanInclusionRepository extends JpaRepository<PlanInclusion, UUID> {
+    List<PlanInclusion> findByPlanId(UUID planId);
+    void deleteByPlanId(UUID planId);
 }
 EOF
-echo -e "${GREEN}✓${NC} Created: PlanInclusion.java"
+echo -e "${GREEN}✓${NC} Created: PlanInclusionRepository.java"
 
-# PlanExclusion.java
-cat > "$MODELS_DIR/PlanExclusion.java" << 'EOF'
-package com.healthcare.plans.common.model;
+# PlanExclusionRepository.java
+cat > "$REPO_DIR/PlanExclusionRepository.java" << 'EOF'
+package com.healthcare.plans.dao.repository;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.healthcare.plans.common.model.PlanExclusion;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.UUID;
 
-@Entity
-@Table(name = "plan_exclusions", indexes = {
-    @Index(name = "idx_plan_exclusions_plan_id", columnList = "plan_id")
-})
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class PlanExclusion extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "plan_id", nullable = false)
-    private Plan plan;
-
-    @Column(name = "exclusion_item", nullable = false, length = 100)
-    private String exclusionItem;
-
-    @Column(name = "exclusion_name", nullable = false, length = 200)
-    private String exclusionName;
-
-    @Column(name = "description", columnDefinition = "TEXT")
-    private String description;
+@Repository
+public interface PlanExclusionRepository extends JpaRepository<PlanExclusion, UUID> {
+    List<PlanExclusion> findByPlanId(UUID planId);
+    void deleteByPlanId(UUID planId);
 }
 EOF
-echo -e "${GREEN}✓${NC} Created: PlanExclusion.java"
+echo -e "${GREEN}✓${NC} Created: PlanExclusionRepository.java"
 
-# HealthcareProvider.java
-cat > "$MODELS_DIR/HealthcareProvider.java" << 'EOF'
-package com.healthcare.plans.common.model;
+# HealthcareProviderRepository.java
+cat > "$REPO_DIR/HealthcareProviderRepository.java" << 'EOF'
+package com.healthcare.plans.dao.repository;
 
-import com.healthcare.plans.common.constants.NetworkTier;
 import com.healthcare.plans.common.constants.ProviderType;
-import jakarta.persistence.*;
-import lombok.*;
+import com.healthcare.plans.common.model.HealthcareProvider;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
-import java.math.BigDecimal;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-@Entity
-@Table(name = "healthcare_providers", indexes = {
-    @Index(name = "idx_providers_state_city", columnList = "state_code, city"),
-    @Index(name = "idx_providers_type_status", columnList = "provider_type, status"),
-    @Index(name = "idx_providers_location", columnList = "latitude, longitude")
-})
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class HealthcareProvider extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @Column(name = "provider_code", nullable = false, unique = true, length = 50)
-    private String providerCode;
-
-    @Column(name = "name", nullable = false, length = 200)
-    private String name;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "provider_type", nullable = false, length = 50)
-    private ProviderType providerType;
-
-    @Column(name = "address_line1", nullable = false, length = 200)
-    private String addressLine1;
-
-    @Column(name = "address_line2", length = 200)
-    private String addressLine2;
-
-    @Column(name = "city", nullable = false, length = 100)
-    private String city;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "state_code", nullable = false)
-    private State state;
-
-    @Column(name = "zip_code", nullable = false, length = 10)
-    private String zipCode;
-
-    @Column(name = "phone", length = 20)
-    private String phone;
-
-    @Column(name = "email", length = 200)
-    private String email;
-
-    @Column(name = "website", length = 200)
-    private String website;
-
-    @Column(name = "latitude", precision = 10, scale = 8)
-    private BigDecimal latitude;
-
-    @Column(name = "longitude", precision = 11, scale = 8)
-    private BigDecimal longitude;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "network_tier", length = 20)
-    private NetworkTier networkTier;
-
-    @Column(name = "accepting_patients", nullable = false)
-    @Builder.Default
-    private Boolean acceptingPatients = true;
-
-    @Column(name = "status", nullable = false, length = 20)
-    @Builder.Default
-    private String status = "active";
-
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(
-        name = "provider_specialists",
-        joinColumns = @JoinColumn(name = "provider_id"),
-        inverseJoinColumns = @JoinColumn(name = "specialist_id")
-    )
-    @Builder.Default
-    private Set<HealthcareSpecialist> specialists = new HashSet<>();
+@Repository
+public interface HealthcareProviderRepository extends JpaRepository<HealthcareProvider, UUID>, 
+                                                      JpaSpecificationExecutor<HealthcareProvider> {
+    
+    Optional<HealthcareProvider> findByProviderCode(String providerCode);
+    
+    boolean existsByProviderCode(String providerCode);
+    
+    Page<HealthcareProvider> findByProviderTypeAndStatus(ProviderType providerType, String status, Pageable pageable);
+    
+    @Query("SELECT COUNT(p) FROM HealthcareProvider p WHERE p.status = 'active'")
+    long countActiveProviders();
 }
 EOF
-echo -e "${GREEN}✓${NC} Created: HealthcareProvider.java"
+echo -e "${GREEN}✓${NC} Created: HealthcareProviderRepository.java"
 
-# HealthcareSpecialist.java
-cat > "$MODELS_DIR/HealthcareSpecialist.java" << 'EOF'
-package com.healthcare.plans.common.model;
+# HealthcareSpecialistRepository.java
+cat > "$REPO_DIR/HealthcareSpecialistRepository.java" << 'EOF'
+package com.healthcare.plans.dao.repository;
 
-import jakarta.persistence.*;
-import lombok.*;
+import com.healthcare.plans.common.model.HealthcareSpecialist;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
+import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
-@Entity
-@Table(name = "healthcare_specialists", indexes = {
-    @Index(name = "idx_specialists_specialty_status", columnList = "specialty_id, status"),
-    @Index(name = "idx_specialists_name", columnList = "last_name, first_name")
-})
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class HealthcareSpecialist extends BaseEntity {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.UUID)
-    private UUID id;
-
-    @Column(name = "npi_number", nullable = false, unique = true, length = 20)
-    private String npiNumber;
-
-    @Column(name = "first_name", nullable = false, length = 100)
-    private String firstName;
-
-    @Column(name = "last_name", nullable = false, length = 100)
-    private String lastName;
-
-    @Column(name = "title", length = 20)
-    private String title;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "specialty_id", nullable = false)
-    private Specialty specialty;
-
-    @Column(name = "email", length = 200)
-    private String email;
-
-    @Column(name = "phone", length = 20)
-    private String phone;
-
-    @Column(name = "years_experience")
-    private Integer yearsExperience;
-
-    @Column(name = "languages", length = 200)
-    private String languages;
-
-    @Column(name = "accepting_patients", nullable = false)
-    @Builder.Default
-    private Boolean acceptingPatients = true;
-
-    @Column(name = "status", nullable = false, length = 20)
-    @Builder.Default
-    private String status = "active";
+@Repository
+public interface HealthcareSpecialistRepository extends JpaRepository<HealthcareSpecialist, UUID>,
+                                                        JpaSpecificationExecutor<HealthcareSpecialist> {
+    
+    Optional<HealthcareSpecialist> findByNpiNumber(String npiNumber);
+    
+    boolean existsByNpiNumber(String npiNumber);
+    
+    Page<HealthcareSpecialist> findBySpecialtyIdAndStatus(Long specialtyId, String status, Pageable pageable);
+    
+    @Query("SELECT COUNT(s) FROM HealthcareSpecialist s WHERE s.status = 'active'")
+    long countActiveSpecialists();
 }
 EOF
-echo -e "${GREEN}✓${NC} Created: HealthcareSpecialist.java"
+echo -e "${GREEN}✓${NC} Created: HealthcareSpecialistRepository.java"
 
-# PlanProvider.java (Join entity for Plan-Provider network)
-cat > "$MODELS_DIR/PlanProvider.java" << 'EOF'
-package com.healthcare.plans.common.model;
+# PlanProviderRepository.java
+cat > "$REPO_DIR/PlanProviderRepository.java" << 'EOF'
+package com.healthcare.plans.dao.repository;
 
 import com.healthcare.plans.common.constants.NetworkStatus;
-import jakarta.persistence.*;
-import lombok.*;
-
-import java.time.LocalDate;
-
-@Entity
-@Table(name = "plan_providers")
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class PlanProvider {
-
-    @EmbeddedId
-    private PlanProviderId id;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("planId")
-    @JoinColumn(name = "plan_id")
-    private Plan plan;
-
-    @ManyToOne(fetch = FetchType.LAZY)
-    @MapsId("providerId")
-    @JoinColumn(name = "provider_id")
-    private HealthcareProvider provider;
-
-    @Enumerated(EnumType.STRING)
-    @Column(name = "network_status", nullable = false, length = 20)
-    @Builder.Default
-    private NetworkStatus networkStatus = NetworkStatus.IN_NETWORK;
-
-    @Column(name = "effective_date")
-    private LocalDate effectiveDate;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: PlanProvider.java"
-
-# PlanProviderId.java (Composite key)
-cat > "$MODELS_DIR/PlanProviderId.java" << 'EOF'
-package com.healthcare.plans.common.model;
-
-import jakarta.persistence.Column;
-import jakarta.persistence.Embeddable;
-import lombok.*;
-
-import java.io.Serializable;
-import java.util.UUID;
-
-@Embeddable
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@EqualsAndHashCode
-public class PlanProviderId implements Serializable {
-
-    @Column(name = "plan_id")
-    private UUID planId;
-
-    @Column(name = "provider_id")
-    private UUID providerId;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: PlanProviderId.java"
-
-# =============================================================================
-# PLANS-COMMON: DTOs
-# =============================================================================
-echo ""
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${CYAN}  PLANS-COMMON: DTOs${NC}"
-echo -e "${CYAN}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-
-DTO_REQUEST_DIR="$BASE_DIR/plans-common/src/main/java/com/healthcare/plans/common/dto/request"
-DTO_RESPONSE_DIR="$BASE_DIR/plans-common/src/main/java/com/healthcare/plans/common/dto/response"
-mkdir -p "$DTO_REQUEST_DIR"
-mkdir -p "$DTO_RESPONSE_DIR"
-
-# CreatePlanRequest.java
-cat > "$DTO_REQUEST_DIR/CreatePlanRequest.java" << 'EOF'
-package com.healthcare.plans.common.dto.request;
-
-import com.healthcare.plans.common.constants.MetalTier;
-import com.healthcare.plans.common.constants.PlanType;
-import jakarta.validation.constraints.*;
-import lombok.*;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Set;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class CreatePlanRequest {
-
-    @NotBlank(message = "Plan name is required")
-    @Size(max = 200)
-    private String planName;
-
-    @NotNull(message = "Year is required")
-    @Min(2020)
-    @Max(2030)
-    private Integer year;
-
-    @Size(max = 2)
-    private String stateCode;
-
-    private Boolean isNational;
-
-    @NotNull(message = "Plan type is required")
-    private PlanType planType;
-
-    @NotNull(message = "Metal tier is required")
-    private MetalTier metalTier;
-
-    @NotNull(message = "Monthly premium is required")
-    @DecimalMin(value = "0.0", inclusive = false)
-    private BigDecimal monthlyPremium;
-
-    @NotNull(message = "Annual deductible is required")
-    @DecimalMin(value = "0.0")
-    private BigDecimal annualDeductible;
-
-    @NotNull(message = "Out of pocket max is required")
-    @DecimalMin(value = "0.0")
-    private BigDecimal outOfPocketMax;
-
-    private BigDecimal copayPrimary;
-    private BigDecimal copaySpecialist;
-    private BigDecimal copayEmergency;
-
-    @Min(0)
-    @Max(100)
-    private Integer outOfNetworkPct;
-
-    @NotNull(message = "Effective date is required")
-    private LocalDate effectiveDate;
-
-    private LocalDate expirationDate;
-
-    private Set<Long> ageGroupIds;
-    private Set<Long> categoryIds;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: CreatePlanRequest.java"
-
-# UpdatePlanRequest.java
-cat > "$DTO_REQUEST_DIR/UpdatePlanRequest.java" << 'EOF'
-package com.healthcare.plans.common.dto.request;
-
-import com.healthcare.plans.common.constants.MetalTier;
-import com.healthcare.plans.common.constants.PlanStatus;
-import com.healthcare.plans.common.constants.PlanType;
-import jakarta.validation.constraints.*;
-import lombok.*;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Set;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class UpdatePlanRequest {
-
-    @Size(max = 200)
-    private String planName;
-
-    private PlanType planType;
-    private MetalTier metalTier;
-
-    @DecimalMin(value = "0.0", inclusive = false)
-    private BigDecimal monthlyPremium;
-
-    @DecimalMin(value = "0.0")
-    private BigDecimal annualDeductible;
-
-    @DecimalMin(value = "0.0")
-    private BigDecimal outOfPocketMax;
-
-    private BigDecimal copayPrimary;
-    private BigDecimal copaySpecialist;
-    private BigDecimal copayEmergency;
-
-    @Min(0)
-    @Max(100)
-    private Integer outOfNetworkPct;
-
-    private PlanStatus status;
-    private LocalDate expirationDate;
-
-    private Set<Long> ageGroupIds;
-    private Set<Long> categoryIds;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: UpdatePlanRequest.java"
-
-# PlanSearchRequest.java
-cat > "$DTO_REQUEST_DIR/PlanSearchRequest.java" << 'EOF'
-package com.healthcare.plans.common.dto.request;
-
-import com.healthcare.plans.common.constants.MetalTier;
-import com.healthcare.plans.common.constants.PlanStatus;
-import com.healthcare.plans.common.constants.PlanType;
-import lombok.*;
-
-import java.math.BigDecimal;
-import java.util.Set;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class PlanSearchRequest {
-
-    private Integer year;
-    private String stateCode;
-    private Boolean isNational;
-    private Set<PlanType> planTypes;
-    private Set<MetalTier> metalTiers;
-    private Set<PlanStatus> statuses;
-    private Set<Long> categoryIds;
-    private Set<Long> ageGroupIds;
-
-    private BigDecimal minPremium;
-    private BigDecimal maxPremium;
-    private BigDecimal maxDeductible;
-
-    private String searchTerm;
-
-    @Builder.Default
-    private Integer page = 0;
-
-    @Builder.Default
-    private Integer size = 20;
-
-    private String sortBy;
-    private String sortDirection;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: PlanSearchRequest.java"
-
-# PlanResponse.java
-cat > "$DTO_RESPONSE_DIR/PlanResponse.java" << 'EOF'
-package com.healthcare.plans.common.dto.response;
-
-import com.healthcare.plans.common.constants.MetalTier;
-import com.healthcare.plans.common.constants.PlanStatus;
-import com.healthcare.plans.common.constants.PlanType;
-import lombok.*;
-
-import java.math.BigDecimal;
-import java.time.LocalDate;
-import java.util.Set;
-import java.util.UUID;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class PlanResponse {
-
-    private UUID id;
-    private String planCode;
-    private String planName;
-    private Integer year;
-    private String stateCode;
-    private String stateName;
-    private Boolean isNational;
-    private PlanType planType;
-    private MetalTier metalTier;
-    private BigDecimal monthlyPremium;
-    private BigDecimal annualDeductible;
-    private BigDecimal outOfPocketMax;
-    private BigDecimal copayPrimary;
-    private BigDecimal copaySpecialist;
-    private BigDecimal copayEmergency;
-    private Integer outOfNetworkPct;
-    private PlanStatus status;
-    private LocalDate effectiveDate;
-    private LocalDate expirationDate;
-    private Set<String> ageGroups;
-    private Set<String> categories;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: PlanResponse.java"
-
-# PlanDetailResponse.java
-cat > "$DTO_RESPONSE_DIR/PlanDetailResponse.java" << 'EOF'
-package com.healthcare.plans.common.dto.response;
-
-import lombok.*;
+import com.healthcare.plans.common.model.PlanProvider;
+import com.healthcare.plans.common.model.PlanProviderId;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class PlanDetailResponse extends PlanResponse {
-
-    private List<InclusionResponse> inclusions;
-    private List<ExclusionResponse> exclusions;
-    private Integer providerCount;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: PlanDetailResponse.java"
-
-# InclusionResponse.java
-cat > "$DTO_RESPONSE_DIR/InclusionResponse.java" << 'EOF'
-package com.healthcare.plans.common.dto.response;
-
-import lombok.*;
-
-import java.math.BigDecimal;
 import java.util.UUID;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class InclusionResponse {
-
-    private UUID id;
-    private String coverageItem;
-    private String coverageName;
-    private String description;
-    private BigDecimal copayAmount;
-    private Integer coveragePercentage;
-    private Boolean priorAuthRequired;
+@Repository
+public interface PlanProviderRepository extends JpaRepository<PlanProvider, PlanProviderId> {
+    
+    @Query("SELECT COUNT(pp) FROM PlanProvider pp WHERE pp.plan.id = :planId AND pp.networkStatus = 'IN_NETWORK'")
+    long countInNetworkProviders(@Param("planId") UUID planId);
+    
+    void deleteByPlanId(UUID planId);
 }
 EOF
-echo -e "${GREEN}✓${NC} Created: InclusionResponse.java"
+echo -e "${GREEN}✓${NC} Created: PlanProviderRepository.java"
 
-# ExclusionResponse.java
-cat > "$DTO_RESPONSE_DIR/ExclusionResponse.java" << 'EOF'
-package com.healthcare.plans.common.dto.response;
+# =============================================================================
+# Specifications
+# =============================================================================
+echo ""
+echo -e "${CYAN}  Creating Specifications...${NC}"
 
-import lombok.*;
+SPEC_DIR="$BASE_DIR/plans-dao/src/main/java/com/healthcare/plans/dao/specification"
+mkdir -p "$SPEC_DIR"
 
-import java.util.UUID;
+cat > "$SPEC_DIR/PlanSpecification.java" << 'EOF'
+package com.healthcare.plans.dao.specification;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class ExclusionResponse {
+import com.healthcare.plans.common.constants.PlanStatus;
+import com.healthcare.plans.common.dto.request.PlanSearchRequest;
+import com.healthcare.plans.common.model.Plan;
+import com.healthcare.plans.common.model.PlanCategory;
+import com.healthcare.plans.common.model.AgeGroup;
+import jakarta.persistence.criteria.*;
+import org.springframework.data.jpa.domain.Specification;
+import org.springframework.util.StringUtils;
 
-    private UUID id;
-    private String exclusionItem;
-    private String exclusionName;
-    private String description;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: ExclusionResponse.java"
-
-# PagedResponse.java
-cat > "$DTO_RESPONSE_DIR/PagedResponse.java" << 'EOF'
-package com.healthcare.plans.common.dto.response;
-
-import lombok.*;
-
+import java.util.ArrayList;
 import java.util.List;
 
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class PagedResponse<T> {
+public class PlanSpecification {
 
-    private List<T> content;
-    private Integer page;
-    private Integer size;
-    private Long totalElements;
-    private Integer totalPages;
-    private Boolean first;
-    private Boolean last;
+    public static Specification<Plan> buildSpecification(PlanSearchRequest request) {
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
+
+            if (request.getYear() != null) {
+                predicates.add(cb.equal(root.get("year"), request.getYear()));
+            }
+
+            if (StringUtils.hasText(request.getStateCode())) {
+                predicates.add(cb.or(
+                    cb.equal(root.get("state").get("code"), request.getStateCode()),
+                    cb.isTrue(root.get("isNational"))
+                ));
+            }
+
+            if (request.getIsNational() != null && request.getIsNational()) {
+                predicates.add(cb.isTrue(root.get("isNational")));
+            }
+
+            if (request.getPlanTypes() != null && !request.getPlanTypes().isEmpty()) {
+                predicates.add(root.get("planType").in(request.getPlanTypes()));
+            }
+
+            if (request.getMetalTiers() != null && !request.getMetalTiers().isEmpty()) {
+                predicates.add(root.get("metalTier").in(request.getMetalTiers()));
+            }
+
+            if (request.getStatuses() != null && !request.getStatuses().isEmpty()) {
+                predicates.add(root.get("status").in(request.getStatuses()));
+            } else {
+                predicates.add(cb.equal(root.get("status"), PlanStatus.ACTIVE));
+            }
+
+            if (request.getMinPremium() != null) {
+                predicates.add(cb.greaterThanOrEqualTo(root.get("monthlyPremium"), request.getMinPremium()));
+            }
+            if (request.getMaxPremium() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("monthlyPremium"), request.getMaxPremium()));
+            }
+
+            if (request.getMaxDeductible() != null) {
+                predicates.add(cb.lessThanOrEqualTo(root.get("annualDeductible"), request.getMaxDeductible()));
+            }
+
+            if (request.getCategoryIds() != null && !request.getCategoryIds().isEmpty()) {
+                Join<Plan, PlanCategory> catJoin = root.join("categories", JoinType.INNER);
+                predicates.add(catJoin.get("id").in(request.getCategoryIds()));
+            }
+
+            if (request.getAgeGroupIds() != null && !request.getAgeGroupIds().isEmpty()) {
+                Join<Plan, AgeGroup> ageJoin = root.join("ageGroups", JoinType.INNER);
+                predicates.add(ageJoin.get("id").in(request.getAgeGroupIds()));
+            }
+
+            if (StringUtils.hasText(request.getSearchTerm())) {
+                String pattern = "%" + request.getSearchTerm().toLowerCase() + "%";
+                predicates.add(cb.or(
+                    cb.like(cb.lower(root.get("planName")), pattern),
+                    cb.like(cb.lower(root.get("planCode")), pattern)
+                ));
+            }
+
+            query.distinct(true);
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
+    }
 }
 EOF
-echo -e "${GREEN}✓${NC} Created: PagedResponse.java"
+echo -e "${GREEN}✓${NC} Created: PlanSpecification.java"
 
-# StateResponse.java
-cat > "$DTO_RESPONSE_DIR/StateResponse.java" << 'EOF'
-package com.healthcare.plans.common.dto.response;
-
-import lombok.*;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class StateResponse {
-    private String code;
-    private String name;
-    private String region;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: StateResponse.java"
-
-# AgeGroupResponse.java
-cat > "$DTO_RESPONSE_DIR/AgeGroupResponse.java" << 'EOF'
-package com.healthcare.plans.common.dto.response;
-
-import lombok.*;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class AgeGroupResponse {
-    private Long id;
-    private String code;
-    private Integer minAge;
-    private Integer maxAge;
-    private String displayName;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: AgeGroupResponse.java"
-
-# CategoryResponse.java
-cat > "$DTO_RESPONSE_DIR/CategoryResponse.java" << 'EOF'
-package com.healthcare.plans.common.dto.response;
-
-import lombok.*;
-
-@Getter
-@Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
-public class CategoryResponse {
-    private Long id;
-    private String code;
-    private String name;
-    private String description;
-}
-EOF
-echo -e "${GREEN}✓${NC} Created: CategoryResponse.java"
-
-# =============================================================================
-# SUMMARY
-# =============================================================================
 echo ""
 echo -e "${GREEN}==============================================================================${NC}"
-echo -e "${GREEN}              Plans Service - Java Source Files Generated!                    ${NC}"
+echo -e "${GREEN}        Part 2a Complete - DAO Layer Created!                                 ${NC}"
 echo -e "${GREEN}==============================================================================${NC}"
 echo ""
-echo -e "${YELLOW}plans-common/constants:${NC}"
-echo -e "  ✓ PlanStatus, PlanType, MetalTier"
-echo -e "  ✓ ProviderType, NetworkStatus, NetworkTier"
-echo ""
-echo -e "${YELLOW}plans-common/model:${NC}"
-echo -e "  ✓ BaseEntity, State, AgeGroup, PlanCategory, Specialty"
-echo -e "  ✓ Plan, PlanInclusion, PlanExclusion"
-echo -e "  ✓ HealthcareProvider, HealthcareSpecialist"
-echo -e "  ✓ PlanProvider, PlanProviderId"
-echo ""
-echo -e "${YELLOW}plans-common/dto/request:${NC}"
-echo -e "  ✓ CreatePlanRequest, UpdatePlanRequest, PlanSearchRequest"
-echo ""
-echo -e "${YELLOW}plans-common/dto/response:${NC}"
-echo -e "  ✓ PlanResponse, PlanDetailResponse"
-echo -e "  ✓ InclusionResponse, ExclusionResponse"
-echo -e "  ✓ PagedResponse, StateResponse, AgeGroupResponse, CategoryResponse"
-echo ""
-echo -e "${YELLOW}Next: Run Part 2 script for DAO, Service, API-Client, API-Stub, API layers${NC}"
-echo ""
+echo -e "${YELLOW}Next: Run Part 2b for Service and API layers${NC}"
