@@ -1,6 +1,3 @@
-# HealthCare-Plans-AI-Platform
-An AI-powered healthcare plans platform featuring intelligent plan recommendations, semantic search, and conversational assistance. Built using **Retrieval-Augmented Generation (RAG)** principles inspired by the [ReGAIN research framework](https://arxiv.org/abs/2512.22223), deployed on AWS with Spring Boot microservices.
-
 # Healthcare Plans AI Platform
 
 An AI-powered healthcare plans platform featuring intelligent plan recommendations, semantic search, and conversational assistance. Built using **Retrieval-Augmented Generation (RAG)** principles inspired by the [ReGAIN research framework](https://arxiv.org/abs/2512.22223), deployed on AWS with Spring Boot microservices, PySpark for Vector Databases indexing and integrationg with AWS native vector databases for customer and advisor/admin support features especially searcihing.
