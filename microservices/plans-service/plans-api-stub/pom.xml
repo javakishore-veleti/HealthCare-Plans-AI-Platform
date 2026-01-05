@@ -5,6 +5,45 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- TODO: Configure this POM -->
+    <parent>
+        <groupId>com.healthcare.plans</groupId>
+        <artifactId>plans-service</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>plans-api-stub</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Plans Service - API Stub</name>
+    <description>API Stub implementations - bridges API interfaces to business logic</description>
+
+    <dependencies>
+        <!-- Internal dependencies -->
+        <dependency>
+            <groupId>com.healthcare.plans</groupId>
+            <artifactId>plans-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.healthcare.plans</groupId>
+            <artifactId>plans-service-core</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.healthcare.plans</groupId>
+            <artifactId>plans-api-client</artifactId>
+        </dependency>
+
+        <!-- Spring Context -->
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-context</artifactId>
+        </dependency>
+
+        <!-- Testing -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 
 </project>
