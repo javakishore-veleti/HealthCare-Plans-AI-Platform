@@ -1,0 +1,100 @@
+-- =============================================================================
+-- Seed Reference Data
+-- =============================================================================
+
+-- US States
+INSERT INTO states (code, name, region) VALUES
+                                            ('AL', 'Alabama', 'Southeast'),
+                                            ('AK', 'Alaska', 'West'),
+                                            ('AZ', 'Arizona', 'Southwest'),
+                                            ('AR', 'Arkansas', 'Southeast'),
+                                            ('CA', 'California', 'West'),
+                                            ('CO', 'Colorado', 'West'),
+                                            ('CT', 'Connecticut', 'Northeast'),
+                                            ('DE', 'Delaware', 'Northeast'),
+                                            ('FL', 'Florida', 'Southeast'),
+                                            ('GA', 'Georgia', 'Southeast'),
+                                            ('HI', 'Hawaii', 'West'),
+                                            ('ID', 'Idaho', 'West'),
+                                            ('IL', 'Illinois', 'Midwest'),
+                                            ('IN', 'Indiana', 'Midwest'),
+                                            ('IA', 'Iowa', 'Midwest'),
+                                            ('KS', 'Kansas', 'Midwest'),
+                                            ('KY', 'Kentucky', 'Southeast'),
+                                            ('LA', 'Louisiana', 'Southeast'),
+                                            ('ME', 'Maine', 'Northeast'),
+                                            ('MD', 'Maryland', 'Northeast'),
+                                            ('MA', 'Massachusetts', 'Northeast'),
+                                            ('MI', 'Michigan', 'Midwest'),
+                                            ('MN', 'Minnesota', 'Midwest'),
+                                            ('MS', 'Mississippi', 'Southeast'),
+                                            ('MO', 'Missouri', 'Midwest'),
+                                            ('MT', 'Montana', 'West'),
+                                            ('NE', 'Nebraska', 'Midwest'),
+                                            ('NV', 'Nevada', 'West'),
+                                            ('NH', 'New Hampshire', 'Northeast'),
+                                            ('NJ', 'New Jersey', 'Northeast'),
+                                            ('NM', 'New Mexico', 'Southwest'),
+                                            ('NY', 'New York', 'Northeast'),
+                                            ('NC', 'North Carolina', 'Southeast'),
+                                            ('ND', 'North Dakota', 'Midwest'),
+                                            ('OH', 'Ohio', 'Midwest'),
+                                            ('OK', 'Oklahoma', 'Southwest'),
+                                            ('OR', 'Oregon', 'West'),
+                                            ('PA', 'Pennsylvania', 'Northeast'),
+                                            ('RI', 'Rhode Island', 'Northeast'),
+                                            ('SC', 'South Carolina', 'Southeast'),
+                                            ('SD', 'South Dakota', 'Midwest'),
+                                            ('TN', 'Tennessee', 'Southeast'),
+                                            ('TX', 'Texas', 'Southwest'),
+                                            ('UT', 'Utah', 'West'),
+                                            ('VT', 'Vermont', 'Northeast'),
+                                            ('VA', 'Virginia', 'Southeast'),
+                                            ('WA', 'Washington', 'West'),
+                                            ('WV', 'West Virginia', 'Southeast'),
+                                            ('WI', 'Wisconsin', 'Midwest'),
+                                            ('WY', 'Wyoming', 'West'),
+                                            ('DC', 'District of Columbia', 'Northeast');
+
+-- Age Groups
+INSERT INTO age_groups (code, min_age, max_age, display_name) VALUES
+                                                                  ('CHILD', 0, 17, 'Child (0-17)'),
+                                                                  ('YOUNG_ADULT', 18, 25, 'Young Adult (18-25)'),
+                                                                  ('ADULT', 26, 39, 'Adult (26-39)'),
+                                                                  ('MIDDLE_AGE', 40, 54, 'Middle Age (40-54)'),
+                                                                  ('PRE_SENIOR', 55, 64, 'Pre-Senior (55-64)'),
+                                                                  ('SENIOR', 65, 120, 'Senior (65+)');
+
+-- Plan Categories
+INSERT INTO plan_categories (code, name, description) VALUES
+                                                          ('INDIVIDUAL', 'Individual', 'Plans for single individuals'),
+                                                          ('FAMILY', 'Family', 'Plans covering family members'),
+                                                          ('EMPLOYER', 'Employer-Sponsored', 'Plans offered through employers'),
+                                                          ('MEDICARE', 'Medicare', 'Federal health insurance for 65+'),
+                                                          ('MEDICAID', 'Medicaid', 'State/federal program for low-income'),
+                                                          ('MARKETPLACE', 'Marketplace', 'ACA exchange plans'),
+                                                          ('SHORT_TERM', 'Short-Term', 'Temporary coverage plans'),
+                                                          ('CATASTROPHIC', 'Catastrophic', 'High-deductible emergency coverage');
+
+-- Specialties
+INSERT INTO specialties (code, name, description) VALUES
+                                                      ('PCP', 'Primary Care', 'General and family medicine'),
+                                                      ('CARD', 'Cardiology', 'Heart and cardiovascular system'),
+                                                      ('DERM', 'Dermatology', 'Skin conditions and diseases'),
+                                                      ('ENDO', 'Endocrinology', 'Hormonal and metabolic disorders'),
+                                                      ('GAST', 'Gastroenterology', 'Digestive system'),
+                                                      ('NEUR', 'Neurology', 'Brain and nervous system'),
+                                                      ('OBGYN', 'Obstetrics & Gynecology', 'Womens health and pregnancy'),
+                                                      ('ONCO', 'Oncology', 'Cancer treatment'),
+                                                      ('OPTH', 'Ophthalmology', 'Eye care and surgery'),
+                                                      ('ORTH', 'Orthopedics', 'Bones, joints, and muscles'),
+                                                      ('PEDI', 'Pediatrics', 'Child and adolescent health'),
+                                                      ('PSYC', 'Psychiatry', 'Mental health'),
+                                                      ('PULM', 'Pulmonology', 'Lung and respiratory'),
+                                                      ('RHEU', 'Rheumatology', 'Autoimmune and joint diseases'),
+                                                      ('UROL', 'Urology', 'Urinary tract and male reproductive'),
+                                                      ('ENT', 'Otolaryngology', 'Ear, nose, and throat'),
+                                                      ('ANES', 'Anesthesiology', 'Pain management and anesthesia'),
+                                                      ('RADI', 'Radiology', 'Medical imaging'),
+                                                      ('PATH', 'Pathology', 'Disease diagnosis from samples'),
+                                                      ('EMER', 'Emergency Medicine', 'Emergency and trauma care');
