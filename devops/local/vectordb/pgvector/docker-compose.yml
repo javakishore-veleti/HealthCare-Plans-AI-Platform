@@ -1,0 +1,29 @@
+
+services:
+  healthcare-pgvector:
+    image: pgvector/pgvector:pg16
+    container_name: healthcare-pgvector
+    environment:
+      POSTGRES_USER: vector_user
+      POSTGRES_PASSWORD: vector_password
+      POSTGRES_DB: vector_db
+    ports:
+      - "5433:5432"
+    volumes:
+      - healthcare_pgvector_data:/var/lib/postgresql/data
+      - ./init-scripts:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vector_user -d vector_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - healthcare-network
+
+volumes:
+  healthcare_pgvector_data:
+
+networks:
+  healthcare-network:
+    name: healthcare-network
+    external: true

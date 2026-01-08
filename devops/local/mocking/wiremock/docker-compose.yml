@@ -1,0 +1,18 @@
+
+services:
+  healthcare-wiremock:
+    image: wiremock/wiremock:3.3.1
+    container_name: healthcare-wiremock
+    ports:
+      - "8087:8080"
+    volumes:
+      - ./mappings:/home/wiremock/mappings
+      - ./files:/home/wiremock/__files
+    command: --verbose --global-response-templating
+    networks:
+      - healthcare-network
+
+networks:
+  healthcare-network:
+    name: healthcare-network
+    external: true

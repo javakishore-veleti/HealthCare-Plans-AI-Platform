@@ -1,0 +1,29 @@
+
+services:
+  healthcare-grafana:
+    image: grafana/grafana:10.2.2
+    container_name: healthcare-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - healthcare_grafana_data:/var/lib/grafana
+      - ./provisioning:/etc/grafana/provisioning:ro
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - healthcare-network
+
+volumes:
+  healthcare_grafana_data:
+
+networks:
+  healthcare-network:
+    name: healthcare-network
+    external: true

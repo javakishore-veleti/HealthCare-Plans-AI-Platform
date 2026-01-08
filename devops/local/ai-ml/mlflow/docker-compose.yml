@@ -1,0 +1,33 @@
+
+services:
+  healthcare-mlflow:
+    image: ghcr.io/mlflow/mlflow:v2.9.2
+    container_name: healthcare-mlflow
+    ports:
+      - "5000:5000"
+    environment:
+      MLFLOW_BACKEND_STORE_URI: postgresql://mlflow_user:mlflow_password@healthcare-postgres:5432/mlflow_db
+      MLFLOW_DEFAULT_ARTIFACT_ROOT: /mlflow/artifacts
+    volumes:
+      - healthcare_mlflow_artifacts:/mlflow/artifacts
+    command: >
+      mlflow server
+      --backend-store-uri postgresql://mlflow_user:mlflow_password@healthcare-postgres:5432/mlflow_db
+      --default-artifact-root /mlflow/artifacts
+      --host 0.0.0.0
+      --port 5000
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - healthcare-network
+
+volumes:
+  healthcare_mlflow_artifacts:
+
+networks:
+  healthcare-network:
+    name: healthcare-network
+    external: true

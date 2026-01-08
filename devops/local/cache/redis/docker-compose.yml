@@ -1,0 +1,37 @@
+services:
+  healthcare-redis:
+    image: redis:7-alpine
+    container_name: healthcare-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - healthcare_redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - healthcare-network
+
+  healthcare-redis-commander:
+    image: ghcr.io/joeferner/redis-commander:latest
+    container_name: healthcare-redis-commander
+    platform: linux/amd64
+    environment:
+      REDIS_HOSTS: local:healthcare-redis:6379
+    ports:
+      - "8085:8081"
+    depends_on:
+      - healthcare-redis
+    networks:
+      - healthcare-network
+
+volumes:
+  healthcare_redis_data:
+
+networks:
+  healthcare-network:
+    name: healthcare-network
+    external: true
