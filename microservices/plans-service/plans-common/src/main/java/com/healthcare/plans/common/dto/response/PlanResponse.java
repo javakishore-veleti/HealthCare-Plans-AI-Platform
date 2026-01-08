@@ -4,6 +4,7 @@ import com.healthcare.plans.common.constants.MetalTier;
 import com.healthcare.plans.common.constants.PlanStatus;
 import com.healthcare.plans.common.constants.PlanType;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
@@ -14,7 +15,7 @@ import java.util.UUID;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@SuperBuilder
 public class PlanResponse {
 
     private UUID id;
