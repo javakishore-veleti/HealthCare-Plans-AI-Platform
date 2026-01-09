@@ -39,8 +39,12 @@ check_service "Order Service" "http://localhost:8084/actuator/health" || exit 1
 echo ""
 echo -e "${YELLOW}Fetching test data...${NC}"
 
-# Get a real plan ID
-PLAN_ID=$(curl -s "http://localhost:8081/api/v1/plans/search?page=0&size=1" | jq -r '.content[0].id')
+# Get a real plan ID (POST request - plans search is POST not GET)
+PLAN_RESPONSE=$(curl -s -X POST "http://localhost:8081/api/v1/plans/search" \
+  -H "Content-Type: application/json" \
+  -d '{"page": 0, "size": 1}')
+
+PLAN_ID=$(echo "$PLAN_RESPONSE" | jq -r '.content[0].id')
 if [ "$PLAN_ID" == "null" ] || [ -z "$PLAN_ID" ]; then
     echo -e "${RED}✗${NC} No plans found. Run: npm run datagen:plans"
     exit 1
@@ -49,12 +53,14 @@ echo -e "${GREEN}✓${NC} Plan ID: $PLAN_ID"
 
 # Get plan details
 PLAN_NAME=$(curl -s "http://localhost:8081/api/v1/plans/$PLAN_ID" | jq -r '.planName')
-echo -e "  Plan Name: $PLAN_NAME"
+echo "  Plan Name: $PLAN_NAME"
 
-# Get a real customer ID
-CUSTOMER_ID=$(curl -s -X POST "http://localhost:8083/api/v1/customers/search" \
+# Get a real customer ID (POST request)
+CUSTOMER_RESPONSE=$(curl -s -X POST "http://localhost:8083/api/v1/customers/search" \
   -H "Content-Type: application/json" \
-  -d '{"status": "ACTIVE", "page": 0, "size": 1}' | jq -r '.content[0].id')
+  -d '{"status": "ACTIVE", "page": 0, "size": 1}')
+
+CUSTOMER_ID=$(echo "$CUSTOMER_RESPONSE" | jq -r '.content[0].id')
 if [ "$CUSTOMER_ID" == "null" ] || [ -z "$CUSTOMER_ID" ]; then
     echo -e "${RED}✗${NC} No customers found. Run: npm run datagen:customer"
     exit 1
@@ -63,15 +69,20 @@ echo -e "${GREEN}✓${NC} Customer ID: $CUSTOMER_ID"
 
 # Get customer details
 CUSTOMER_NAME=$(curl -s "http://localhost:8083/api/v1/customers/$CUSTOMER_ID" | jq -r '.fullName')
-echo -e "  Customer Name: $CUSTOMER_NAME"
+echo "  Customer Name: $CUSTOMER_NAME"
 
 echo ""
 echo -e "${YELLOW}Creating order with inter-service integration...${NC}"
 
 # Create order - this tests Order Service calling Plans and Customer services
-EFFECTIVE_DATE=$(date -v+1m +%Y-%m-01 2>/dev/null || date -d "+1 month" +%Y-%m-01)
+# Use date command compatible with both Linux and macOS
+if date -v+1m +%Y-%m-01 > /dev/null 2>&1; then
+    EFFECTIVE_DATE=$(date -v+1m +%Y-%m-01)  # macOS
+else
+    EFFECTIVE_DATE=$(date -d "+1 month" +%Y-%m-01)  # Linux
+fi
 
-ORDER_RESPONSE=$(curl -s -X POST http://localhost:8084/api/v1/orders \
+ORDER_RESPONSE=$(curl -s -X POST "http://localhost:8084/api/v1/orders" \
   -H "Content-Type: application/json" \
   -d "{
     \"customerId\": \"$CUSTOMER_ID\",
@@ -114,11 +125,16 @@ if [ "$ORDER_CUSTOMER_NAME" == "$CUSTOMER_NAME" ]; then
     echo -e "${GREEN}✓${NC} Customer data integration working"
 else
     echo -e "${YELLOW}⚠${NC} Customer name mismatch (may be using fallback)"
+    echo "  Expected: $CUSTOMER_NAME"
+    echo "  Got:      $ORDER_CUSTOMER_NAME"
 fi
 
 # Verify plan name came from Plans Service
-if [ "$ORDER_PLAN_NAME" != "Healthcare Plan" ]; then
+if [ "$ORDER_PLAN_NAME" == "$PLAN_NAME" ]; then
     echo -e "${GREEN}✓${NC} Plans data integration working"
+elif [ "$ORDER_PLAN_NAME" != "Healthcare Plan" ] && [ "$ORDER_PLAN_NAME" != "null" ]; then
+    echo -e "${GREEN}✓${NC} Plans data integration working"
+    echo "  Plan: $ORDER_PLAN_NAME"
 else
     echo -e "${YELLOW}⚠${NC} Plan name is default (may be using fallback)"
 fi
