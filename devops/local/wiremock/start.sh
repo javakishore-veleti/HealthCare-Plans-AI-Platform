@@ -1,0 +1,17 @@
+#!/bin/bash
+echo "Starting WireMock Payment Service..."
+docker-compose up -d
+echo ""
+echo "WireMock Payment Service running at http://localhost:8090"
+echo ""
+echo "Test endpoints:"
+echo "  POST http://localhost:8090/api/v1/payments/process"
+echo "  GET  http://localhost:8090/api/v1/payments/{id}"
+echo "  GET  http://localhost:8090/api/v1/payments/methods"
+echo "  POST http://localhost:8090/api/v1/payments/methods"
+echo "  GET  http://localhost:8090/health"
+echo ""
+echo "Test card numbers:"
+echo "  4242424242424242 - Success"
+echo "  4000000000000002 - Declined"
+echo "  4000000000009995 - Insufficient funds"

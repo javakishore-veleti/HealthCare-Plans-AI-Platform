@@ -9,7 +9,6 @@
     "infra:down": "./devops/local/docker-all-down.sh",
     "infra:status": "./devops/local/docker-all-status.sh",
     "infra:clean": "./devops/local/docker-all-clean.sh",
-    
     "---BUILD---": "echo 'Build commands'",
     "build": "npm run build:services",
     "build:services": "npm run build:plans && npm run build:customer && npm run build:order",
@@ -19,36 +18,31 @@
     "build:admin": "cd admin-portal && npm run build",
     "build:portal": "cd customer-portal && npm run build",
     "build:frontends": "npm run build:admin && npm run build:portal",
-    
     "---BACKEND-SERVICES---": "echo 'Run backend services'",
+    "datagen:all": "./scripts/datagen-all.sh",
     "start:plans": "mvn -f microservices/plans-service/plans-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local",
     "start:customer": "mvn -f microservices/customer-onboarding-service/customer-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local",
     "start:order": "mvn -f microservices/order-service/order-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local",
-    
     "---FRONTEND-APPS---": "echo 'Run frontend apps'",
     "start:admin": "cd admin-portal && npm run dev",
     "start:portal": "cd customer-portal && npm run dev",
-    
     "---SERVICES-BACKGROUND---": "echo 'Run all services in background'",
+    "start:all": "./scripts/start-all.sh",
     "start:all:bg": "npm run start:plans:bg && npm run start:customer:bg && npm run start:order:bg",
     "start:plans:bg": "mvn -f microservices/plans-service/plans-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local > logs/plans.log 2>&1 &",
     "start:customer:bg": "mvn -f microservices/customer-onboarding-service/customer-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local > logs/customer.log 2>&1 &",
     "start:order:bg": "mvn -f microservices/order-service/order-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local > logs/order.log 2>&1 &",
-    
     "wait:services": "./scripts/wait-for-services.sh",
-    
     "---STOP---": "echo 'Stop services'",
-    "stop:all": "lsof -ti:8081 | xargs kill -9 2>/dev/null; lsof -ti:8083 | xargs kill -9 2>/dev/null; lsof -ti:8084 | xargs kill -9 2>/dev/null; lsof -ti:3000 | xargs kill -9 2>/dev/null; lsof -ti:3001 | xargs kill -9 2>/dev/null; echo 'All services stopped'",
+    "stop:all": "lsof -ti:8081 | xargs kill -9 2>/dev/null; lsof -ti:8083 | xargs kill -9 2>/dev/null; lsof -ti:8084 | xargs kill -9 2>/dev/null; lsof -ti:3000 | xargs kill -9 2>/dev/null; lsof -ti:3001 | xargs kill -9 2>/dev/null; cd devops/local/wiremock && docker-compose down 2>/dev/null; echo 'All services stopped'",
     "stop:backend": "lsof -ti:8081 | xargs kill -9 2>/dev/null; lsof -ti:8083 | xargs kill -9 2>/dev/null; lsof -ti:8084 | xargs kill -9 2>/dev/null; echo 'Backend services stopped'",
     "stop:frontend": "lsof -ti:3000 | xargs kill -9 2>/dev/null; lsof -ti:3001 | xargs kill -9 2>/dev/null; echo 'Frontend apps stopped'",
-    
     "---DATA-GENERATION---": "echo 'Generate synthetic data'",
     "datagen:plans": "mvn -f microservices/plans-service/plans-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local,datagen",
     "datagen:customer": "mvn -f microservices/customer-onboarding-service/customer-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local,datagen",
     "datagen:order": "mvn -f microservices/order-service/order-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local,datagen",
-    
     "---HEALTH---": "echo 'Health checks'",
-    "health": "npm run health:backend; npm run health:frontend",
+    "health": "npm run health:backend; npm run health:frontend; npm run health:wiremock",
     "health:backend": "npm run health:plans; npm run health:customer; npm run health:order",
     "health:frontend": "npm run health:admin; npm run health:portal",
     "health:plans": "curl -s http://localhost:8081/actuator/health | jq -r '\"Plans:    \" + (.status // \"DOWN\")'",
@@ -56,46 +50,50 @@
     "health:order": "curl -s http://localhost:8084/actuator/health | jq -r '\"Order:    \" + (.status // \"DOWN\")'",
     "health:admin": "curl -s http://localhost:3000 > /dev/null && echo 'Admin:    UP' || echo 'Admin:    DOWN'",
     "health:portal": "curl -s http://localhost:3001 > /dev/null && echo 'Portal:   UP' || echo 'Portal:   DOWN'",
-    
     "---SWAGGER---": "echo 'Swagger UIs'",
     "swagger:plans": "open http://localhost:8081/swagger-ui.html",
     "swagger:customer": "open http://localhost:8083/swagger-ui.html",
     "swagger:order": "open http://localhost:8084/swagger-ui.html",
     "swagger:all": "open http://localhost:8081/swagger-ui.html http://localhost:8083/swagger-ui.html http://localhost:8084/swagger-ui.html",
-    
     "---OPEN-APPS---": "echo 'Open frontend apps'",
     "open:admin": "open http://localhost:3000",
     "open:portal": "open http://localhost:3001",
     "open:all": "open http://localhost:3000 http://localhost:3001",
-    
     "---LOGS---": "echo 'View logs'",
     "logs:plans": "tail -f logs/plans.log",
     "logs:customer": "tail -f logs/customer.log",
     "logs:order": "tail -f logs/order.log",
     "logs:all": "tail -f logs/*.log",
-    
     "---DATABASE---": "echo 'Database commands'",
     "db:plans": "docker exec -it healthcare-postgres psql -U plans_user -d plans_db",
     "db:customer": "docker exec -it healthcare-postgres psql -U customer_user -d customer_db",
     "db:order": "docker exec -it healthcare-postgres psql -U order_user -d order_db",
-    
     "db:truncate:plans": "docker exec healthcare-postgres psql -U plans_user -d plans_db -c 'TRUNCATE TABLE plan_specialists, plan_providers, specialists, providers, plans CASCADE;'",
     "db:truncate:customer": "docker exec healthcare-postgres psql -U customer_user -d customer_db -c 'TRUNCATE TABLE customer_plan_enrollments, eligibility_checks, customer_documents, customer_dependents, customer_addresses, customers CASCADE;'",
     "db:truncate:order": "docker exec healthcare-postgres psql -U order_user -d order_db -c 'TRUNCATE TABLE invoice_line_items, invoices, payments, order_items, orders, saved_payment_methods CASCADE;'",
-    
     "---DOCKER-LOGS---": "echo 'View docker logs'",
     "docker:logs:postgres": "docker logs -f healthcare-postgres",
     "docker:logs:redis": "docker logs -f healthcare-redis",
     "docker:logs:kafka": "docker logs -f healthcare-kafka",
-    
     "---TEST---": "echo 'Test commands'",
-    "test:integration": "./scripts/test-integration.sh"
+    "test:integration": "./scripts/test-integration.sh",
+    "---WIREMOCK---": "echo 'WireMock payment service'",
+    "start:wiremock": "cd devops/local/wiremock && ./start.sh",
+    "stop:wiremock": "cd devops/local/wiremock && ./stop.sh",
+    "health:wiremock": "curl -s http://localhost:8090/health | jq -r '\"WireMock: \" + (.status // \"DOWN\")'"
   },
   "repository": {
     "type": "git",
     "url": "https://github.com/your-org/healthcare-plans-ai-platform"
   },
-  "keywords": ["healthcare", "microservices", "spring-boot", "rag", "llm", "regain"],
+  "keywords": [
+    "healthcare",
+    "microservices",
+    "spring-boot",
+    "rag",
+    "llm",
+    "regain"
+  ],
   "author": "Healthcare Platform Team",
   "license": "Apache-2.0"
 }

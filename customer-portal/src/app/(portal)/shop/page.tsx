@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Filter, ShoppingCart, Check, Info } from "lucide-react";
+import { Search, ShoppingCart, Check, Info, GitCompare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { plansApi } from "@/lib/api";
 import { useAuthStore, useCartStore } from "@/store";
@@ -17,15 +18,16 @@ import { toast } from "sonner";
 import type { Plan, Profile } from "@/types";
 
 export default function ShopPage() {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [metalTier, setMetalTier] = useState<string>("ALL");
   const [page, setPage] = useState(0);
   const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
   const [showProfileDialog, setShowProfileDialog] = useState(false);
+  const [compareList, setCompareList] = useState<string[]>([]);
 
-  const { profiles, getActiveProfile } = useAuthStore();
+  const { profiles } = useAuthStore();
   const { addItem, hasItem } = useCartStore();
-  const activeProfile = getActiveProfile();
 
   const { data, isLoading } = useQuery({
     queryKey: ["plans", page, search, metalTier],
@@ -53,6 +55,27 @@ export default function ShopPage() {
     }
     setShowProfileDialog(false);
     setSelectedPlan(null);
+  };
+
+  const toggleCompare = (planId: string) => {
+    setCompareList((prev) => {
+      if (prev.includes(planId)) {
+        return prev.filter((id) => id !== planId);
+      }
+      if (prev.length >= 4) {
+        toast.error("You can compare up to 4 plans at a time");
+        return prev;
+      }
+      return [...prev, planId];
+    });
+  };
+
+  const goToCompare = () => {
+    if (compareList.length < 2) {
+      toast.error("Select at least 2 plans to compare");
+      return;
+    }
+    router.push(`/compare?ids=${compareList.join(",")}`);
   };
 
   const tiers = ["ALL", "BRONZE", "SILVER", "GOLD", "PLATINUM"];
@@ -98,6 +121,29 @@ export default function ShopPage() {
         </CardContent>
       </Card>
 
+      {/* Compare Bar */}
+      {compareList.length > 0 && (
+        <Card className="mb-6 border-blue-200 bg-blue-50">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <GitCompare className="h-5 w-5 text-blue-600" />
+                <span className="font-medium">{compareList.length} plans selected</span>
+                <span className="text-sm text-slate-500">(max 4)</span>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" onClick={() => setCompareList([])}>
+                  Clear
+                </Button>
+                <Button size="sm" onClick={goToCompare} disabled={compareList.length < 2}>
+                  Compare Plans
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Plans Grid */}
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
@@ -109,13 +155,28 @@ export default function ShopPage() {
         <>
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {data?.data?.content?.map((plan: Plan) => (
-              <Card key={plan.id} className="flex flex-col hover:shadow-lg transition-shadow">
+              <Card 
+                key={plan.id} 
+                className={cn(
+                  "flex flex-col hover:shadow-lg transition-shadow",
+                  compareList.includes(plan.id) && "ring-2 ring-blue-500"
+                )}
+              >
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div className="flex-1">
-                      <Badge className={cn("mb-2", getMetalTierColor(plan.metalTier))}>
-                        {plan.metalTier}
-                      </Badge>
+                      <div className="flex items-center gap-2 mb-2">
+                        <Badge className={cn(getMetalTierColor(plan.metalTier))}>
+                          {plan.metalTier}
+                        </Badge>
+                        <label className="flex items-center gap-1 text-sm cursor-pointer">
+                          <Checkbox
+                            checked={compareList.includes(plan.id)}
+                            onCheckedChange={() => toggleCompare(plan.id)}
+                          />
+                          Compare
+                        </label>
+                      </div>
                       <CardTitle className="text-lg leading-tight">{plan.planName}</CardTitle>
                       <CardDescription className="mt-1">{plan.issuerName}</CardDescription>
                     </div>

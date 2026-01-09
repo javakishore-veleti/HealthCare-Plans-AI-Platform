@@ -1,0 +1,22 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPathPattern": "/api/v1/payments/[a-f0-9-]+/refund"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": "{{randomValue type='UUID'}}",
+      "originalPaymentId": "{{request.pathSegments.[3]}}",
+      "refundTransactionId": "REF-{{randomValue length=12 type='ALPHANUMERIC'}}",
+      "amount": 100.00,
+      "status": "REFUNDED",
+      "reason": "Customer request",
+      "processedAt": "{{now}}"
+    },
+    "transformers": ["response-template"]
+  }
+}

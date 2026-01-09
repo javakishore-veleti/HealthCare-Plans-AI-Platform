@@ -1,0 +1,23 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPathPattern": "/api/v1/payments/[a-f0-9-]+"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": "{{request.pathSegments.[3]}}",
+      "transactionId": "TXN-ABC123456789",
+      "status": "COMPLETED",
+      "amount": 350.00,
+      "currency": "USD",
+      "paymentMethod": "CREDIT_CARD",
+      "cardLast4": "4242",
+      "processedAt": "{{now}}"
+    },
+    "transformers": ["response-template"]
+  }
+}

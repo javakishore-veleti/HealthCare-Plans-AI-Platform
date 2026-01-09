@@ -51,7 +51,7 @@ export const plansApi = {
   search: (params: any) => api.post("/api/plans/search", params),
   getById: (id: string) => api.get(`/api/plans/${id}`),
   getByCode: (code: string) => api.get(`/api/plans/code/${code}`),
-  compare: (ids: string[]) => api.post("/api/plans/compare", { planIds: ids }),
+  compare: (ids: string[]) => api.post("/api/plans/bulk", ids).then(res => ({ data: { plans: res.data } })),
 };
 
 // Profiles API

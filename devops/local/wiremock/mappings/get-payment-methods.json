@@ -1,0 +1,34 @@
+{
+  "request": {
+    "method": "GET",
+    "urlPath": "/api/v1/payments/methods"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": [
+      {
+        "id": "pm_visa_4242",
+        "type": "CREDIT_CARD",
+        "brand": "Visa",
+        "last4": "4242",
+        "expiryMonth": 12,
+        "expiryYear": 2028,
+        "isDefault": true,
+        "createdAt": "2024-01-01T00:00:00.000Z"
+      },
+      {
+        "id": "pm_mc_5555",
+        "type": "CREDIT_CARD",
+        "brand": "Mastercard",
+        "last4": "5555",
+        "expiryMonth": 6,
+        "expiryYear": 2027,
+        "isDefault": false,
+        "createdAt": "2024-06-15T00:00:00.000Z"
+      }
+    ]
+  }
+}

@@ -1,55 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { Trash2, ShoppingBag, ArrowRight, CreditCard } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Trash2, ShoppingBag, ArrowRight } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useCartStore, useAuthStore } from "@/store";
-import { ordersApi } from "@/lib/api";
 import { formatCurrency, getMetalTierColor } from "@/lib/utils";
-import { toast } from "sonner";
 
 export default function CartPage() {
-  const router = useRouter();
-  const [isLoading, setIsLoading] = useState(false);
   const { items, removeItem, clearCart, getMonthlyTotal, getAnnualTotal } = useCartStore();
   const { profiles } = useAuthStore();
 
   const monthlyTotal = getMonthlyTotal();
   const annualTotal = getAnnualTotal();
-
-  const handleCheckout = async () => {
-    if (items.length === 0) {
-      toast.error("Your cart is empty");
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const orderData = {
-        orderType: "NEW_ENROLLMENT",
-        effectiveDate: new Date(new Date().setMonth(new Date().getMonth() + 1)).toISOString().split("T")[0],
-        billingFrequency: "MONTHLY",
-        items: items.map((item) => ({
-          planId: item.planId,
-          profileId: item.profileId,
-          quantity: 1,
-        })),
-      };
-
-      const response = await ordersApi.create(orderData);
-      clearCart();
-      toast.success("Order created successfully!");
-      router.push(`/orders/${response.data.id}`);
-    } catch (error: any) {
-      toast.error(error.response?.data?.message || "Failed to create order");
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   if (items.length === 0) {
     return (
@@ -103,7 +67,7 @@ export default function CartPage() {
                       <CardTitle className="text-lg">
                         {profile?.firstName} {profile?.lastName}
                       </CardTitle>
-                      <CardDescription>{profile?.relationship}</CardDescription>
+                      <p className="text-sm text-slate-500">{profile?.relationship}</p>
                     </div>
                     <p className="font-semibold">{formatCurrency(profileTotal)}/mo</p>
                   </div>
@@ -178,15 +142,12 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <Button
-                className="w-full gap-2"
-                size="lg"
-                onClick={handleCheckout}
-                loading={isLoading}
-              >
-                <CreditCard className="h-4 w-4" />
-                Proceed to Checkout
-              </Button>
+              <Link href="/checkout">
+                <Button className="w-full gap-2" size="lg">
+                  Proceed to Checkout
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </Link>
 
               <p className="text-xs text-slate-500 text-center">
                 By proceeding, you agree to our Terms of Service

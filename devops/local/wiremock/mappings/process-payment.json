@@ -1,0 +1,24 @@
+{
+  "request": {
+    "method": "POST",
+    "urlPath": "/api/v1/payments/process"
+  },
+  "response": {
+    "status": 200,
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "jsonBody": {
+      "id": "{{randomValue type='UUID'}}",
+      "transactionId": "TXN-{{randomValue length=12 type='ALPHANUMERIC'}}",
+      "orderId": "{{jsonPath request.body '$.orderId'}}",
+      "amount": "{{jsonPath request.body '$.amount'}}",
+      "currency": "{{jsonPath request.body '$.currency'}}",
+      "status": "COMPLETED",
+      "paymentMethod": "{{jsonPath request.body '$.paymentMethod'}}",
+      "processedAt": "{{now}}",
+      "message": "Payment processed successfully"
+    },
+    "transformers": ["response-template"]
+  }
+}
