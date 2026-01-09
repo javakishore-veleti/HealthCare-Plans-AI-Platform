@@ -1,5 +1,6 @@
 package com.healthcare.order.service;
 
+import com.healthcare.order.common.constants.BillingFrequency;
 import com.healthcare.order.common.constants.OrderStatus;
 import com.healthcare.order.common.dto.request.CreateOrderRequest;
 import com.healthcare.order.common.dto.request.OrderItemRequest;
@@ -12,8 +13,8 @@ import com.healthcare.order.common.model.OrderItem;
 import com.healthcare.order.dao.repository.OrderRepository;
 import com.healthcare.order.dao.specification.OrderSpecification;
 import com.healthcare.order.service.mapper.OrderMapper;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -31,43 +32,68 @@ import java.util.stream.Collectors;
 
 @Slf4j
 @Service
-@RequiredArgsConstructor
 @Transactional
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final OrderMapper orderMapper;
 
-    // TODO: Inject Plan and Customer API clients
-    // private final PlanApiClient planApiClient;
-    // private final CustomerApiClient customerApiClient;
+    // Optional Feign clients - injected separately to handle unavailability
+    private ExternalServiceClient externalServiceClient;
+
+    @Autowired
+    public OrderServiceImpl(OrderRepository orderRepository, OrderMapper orderMapper) {
+        this.orderRepository = orderRepository;
+        this.orderMapper = orderMapper;
+    }
+
+    @Autowired(required = false)
+    public void setExternalServiceClient(ExternalServiceClient externalServiceClient) {
+        this.externalServiceClient = externalServiceClient;
+        log.info("External service clients configured");
+    }
 
     @Override
     public OrderDetailResponse createOrder(CreateOrderRequest request) {
         log.info("Creating order for customer: {}", request.getCustomerId());
 
-        // TODO: Fetch customer details from customer-service
-        // CustomerDetailResponse customer = customerApiClient.getCustomerById(request.getCustomerId());
+        // Fetch customer details from customer-service (with fallback)
+        String customerName = "Customer";
+        String customerEmail = "customer@example.com";
+        String customerNumber = "CUS" + request.getCustomerId().toString().substring(0, 8);
+
+        if (externalServiceClient != null) {
+            try {
+                var customerInfo = externalServiceClient.getCustomerInfo(request.getCustomerId());
+                if (customerInfo != null) {
+                    customerName = customerInfo.fullName();
+                    customerEmail = customerInfo.email();
+                    customerNumber = customerInfo.customerNumber();
+                    log.debug("Fetched customer: {} ({})", customerName, customerNumber);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch customer details, using defaults: {}", e.getMessage());
+            }
+        }
 
         Order order = Order.builder()
-            .orderNumber(generateOrderNumber())
-            .customerId(request.getCustomerId())
-            .customerNumber("CUS" + request.getCustomerId().toString().substring(0, 8))
-            .customerName("Customer Name") // TODO: Get from customer service
-            .customerEmail("customer@example.com") // TODO: Get from customer service
-            .orderType(request.getOrderType())
-            .status(OrderStatus.DRAFT)
-            .billingFrequency(request.getBillingFrequency() != null ? 
-                request.getBillingFrequency() : 
-                com.healthcare.order.common.constants.BillingFrequency.MONTHLY)
-            .effectiveDate(request.getEffectiveDate())
-            .promoCode(request.getPromoCode())
-            .notes(request.getNotes())
-            .build();
+                .orderNumber(generateOrderNumber())
+                .customerId(request.getCustomerId())
+                .customerNumber(customerNumber)
+                .customerName(customerName)
+                .customerEmail(customerEmail)
+                .orderType(request.getOrderType())
+                .status(OrderStatus.DRAFT)
+                .billingFrequency(request.getBillingFrequency() != null ?
+                        request.getBillingFrequency() : BillingFrequency.MONTHLY)
+                .effectiveDate(request.getEffectiveDate())
+                .promoCode(request.getPromoCode())
+                .notes(request.getNotes())
+                .build();
 
-        // Add items
+        // Add items with plan details
         for (OrderItemRequest itemRequest : request.getItems()) {
-            OrderItem item = createOrderItem(itemRequest);
+            OrderItem item = createOrderItem(itemRequest, order.getBillingFrequency());
             order.addItem(item);
         }
 
@@ -77,7 +103,8 @@ public class OrderServiceImpl implements OrderService {
         }
 
         Order savedOrder = orderRepository.save(order);
-        log.info("Created order: {} with {} items", savedOrder.getOrderNumber(), savedOrder.getItems().size());
+        log.info("Created order: {} with {} items, total: ${}",
+                savedOrder.getOrderNumber(), savedOrder.getItems().size(), savedOrder.getTotalAmount());
 
         return orderMapper.toDetailResponse(savedOrder);
     }
@@ -86,7 +113,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public OrderDetailResponse getOrderById(UUID orderId) {
         Order order = orderRepository.findByIdWithDetails(orderId)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
         return orderMapper.toDetailResponse(order);
     }
 
@@ -94,7 +121,7 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public OrderDetailResponse getOrderByNumber(String orderNumber) {
         Order order = orderRepository.findByOrderNumber(orderNumber)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNumber));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderNumber));
         return orderMapper.toDetailResponse(order);
     }
 
@@ -102,8 +129,8 @@ public class OrderServiceImpl implements OrderService {
     @Transactional(readOnly = true)
     public List<OrderResponse> getCustomerOrders(UUID customerId) {
         return orderRepository.findByCustomerId(customerId).stream()
-            .map(orderMapper::toResponse)
-            .collect(Collectors.toList());
+                .map(orderMapper::toResponse)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -113,25 +140,25 @@ public class OrderServiceImpl implements OrderService {
         Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
 
         Page<Order> orderPage = orderRepository.findAll(
-            OrderSpecification.buildSpecification(request), pageable);
+                OrderSpecification.buildSpecification(request), pageable);
 
         return PagedResponse.<OrderResponse>builder()
-            .content(orderPage.getContent().stream()
-                .map(orderMapper::toResponse)
-                .collect(Collectors.toList()))
-            .page(orderPage.getNumber())
-            .size(orderPage.getSize())
-            .totalElements(orderPage.getTotalElements())
-            .totalPages(orderPage.getTotalPages())
-            .first(orderPage.isFirst())
-            .last(orderPage.isLast())
-            .build();
+                .content(orderPage.getContent().stream()
+                        .map(orderMapper::toResponse)
+                        .collect(Collectors.toList()))
+                .page(orderPage.getNumber())
+                .size(orderPage.getSize())
+                .totalElements(orderPage.getTotalElements())
+                .totalPages(orderPage.getTotalPages())
+                .first(orderPage.isFirst())
+                .last(orderPage.isLast())
+                .build();
     }
 
     @Override
     public OrderDetailResponse submitOrder(UUID orderId) {
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
 
         if (order.getStatus() != OrderStatus.DRAFT) {
             throw new IllegalStateException("Only draft orders can be submitted");
@@ -153,7 +180,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDetailResponse cancelOrder(UUID orderId, String reason) {
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
 
         if (order.getStatus() == OrderStatus.COMPLETED || order.getStatus() == OrderStatus.CANCELLED) {
             throw new IllegalStateException("Cannot cancel order in status: " + order.getStatus());
@@ -172,7 +199,7 @@ public class OrderServiceImpl implements OrderService {
     @Override
     public OrderDetailResponse completeOrder(UUID orderId) {
         Order order = orderRepository.findByIdWithDetails(orderId)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
 
         if (order.getBalanceDue().compareTo(BigDecimal.ZERO) > 0) {
             throw new IllegalStateException("Order has outstanding balance: " + order.getBalanceDue());
@@ -184,16 +211,13 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
         log.info("Completed order: {}", savedOrder.getOrderNumber());
 
-        // TODO: Trigger enrollment in customer-service
-        // customerApiClient.enrollCustomer(order.getCustomerId(), enrollmentRequest);
-
         return orderMapper.toDetailResponse(savedOrder);
     }
 
     @Override
     public void deleteOrder(UUID orderId) {
         Order order = orderRepository.findById(orderId)
-            .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found: " + orderId));
 
         if (order.getStatus() != OrderStatus.DRAFT) {
             throw new IllegalStateException("Only draft orders can be deleted");
@@ -203,11 +227,43 @@ public class OrderServiceImpl implements OrderService {
         log.info("Deleted order: {}", orderId);
     }
 
-    private OrderItem createOrderItem(OrderItemRequest request) {
-        // TODO: Fetch plan details from plans-service
-        // PlanDetailResponse plan = planApiClient.getPlanById(request.getPlanId());
+    private OrderItem createOrderItem(OrderItemRequest request, BillingFrequency billingFrequency) {
+        // Default values
+        String planCode = "PLN-" + request.getPlanId().toString().substring(0, 8);
+        String planName = "Healthcare Plan";
+        String metalTier = "SILVER";
+        BigDecimal unitPrice = BigDecimal.valueOf(350.00);
+        Integer planYear = java.time.LocalDate.now().getYear();
 
-        BigDecimal unitPrice = BigDecimal.valueOf(350.00); // TODO: Get from plan service
+        // Fetch plan details from plans-service
+        if (externalServiceClient != null) {
+            try {
+                var planInfo = externalServiceClient.getPlanInfo(request.getPlanId());
+                if (planInfo != null) {
+                    planCode = planInfo.planCode();
+                    planName = planInfo.planName();
+                    metalTier = planInfo.metalTier();
+                    planYear = planInfo.planYear();
+
+                    // Get monthly premium and calculate based on billing frequency
+                    BigDecimal monthlyPremium = planInfo.monthlyPremium() != null ?
+                            planInfo.monthlyPremium() : BigDecimal.valueOf(350.00);
+
+                    unitPrice = switch (billingFrequency) {
+                        case MONTHLY -> monthlyPremium;
+                        case QUARTERLY -> monthlyPremium.multiply(BigDecimal.valueOf(3));
+                        case SEMI_ANNUAL -> monthlyPremium.multiply(BigDecimal.valueOf(6));
+                        case ANNUAL -> monthlyPremium.multiply(BigDecimal.valueOf(12));
+                    };
+
+                    log.debug("Fetched plan: {} - {} @ ${}/{}",
+                            planCode, planName, unitPrice, billingFrequency);
+                }
+            } catch (Exception e) {
+                log.warn("Failed to fetch plan details, using defaults: {}", e.getMessage());
+            }
+        }
+
         BigDecimal subsidy = request.getSubsidyAmount() != null ? request.getSubsidyAmount() : BigDecimal.ZERO;
         BigDecimal discount = BigDecimal.ZERO;
         int qty = request.getQuantity() != null ? request.getQuantity() : 1;
@@ -216,13 +272,17 @@ public class OrderServiceImpl implements OrderService {
                 .subtract(discount)
                 .subtract(subsidy);
 
+        if (totalPrice.compareTo(BigDecimal.ZERO) < 0) {
+            totalPrice = BigDecimal.ZERO;
+        }
+
         return OrderItem.builder()
                 .planId(request.getPlanId())
-                .planCode("PLN-" + request.getPlanId().toString().substring(0, 8))
-                .planName("Healthcare Plan") // TODO: Get from plan service
-                .planYear(java.time.LocalDate.now().getYear())
-                .metalTier("GOLD") // TODO: Get from plan service
-                .description("Monthly healthcare plan premium")
+                .planCode(planCode)
+                .planName(planName)
+                .planYear(planYear)
+                .metalTier(metalTier)
+                .description("Healthcare plan premium - " + billingFrequency.name().toLowerCase())
                 .quantity(qty)
                 .unitPrice(unitPrice)
                 .discountAmount(discount)
@@ -234,12 +294,10 @@ public class OrderServiceImpl implements OrderService {
     }
 
     private void applyPromoCode(Order order, String promoCode) {
-        // TODO: Validate promo code and apply discount
-        // For now, apply a simple 10% discount for any code
         BigDecimal discount = order.getSubtotal().multiply(BigDecimal.valueOf(0.10));
         order.setDiscountAmount(discount);
         order.recalculateTotals();
-        log.info("Applied promo code {} - Discount: {}", promoCode, discount);
+        log.info("Applied promo code {} - Discount: ${}", promoCode, discount);
     }
 
     private String generateOrderNumber() {

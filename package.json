@@ -1,0 +1,89 @@
+{
+  "name": "healthcare-plans-ai-platform",
+  "version": "1.0.0",
+  "description": "Healthcare Plans AI Platform - ReGAIN Implementation",
+  "scripts": {
+    "---INFRASTRUCTURE---": "echo 'Docker infrastructure commands'",
+    "infra:up": "./devops/local/docker-all-up.sh",
+    "infra:up:all": "./devops/local/docker-all-up.sh all",
+    "infra:down": "./devops/local/docker-all-down.sh",
+    "infra:status": "./devops/local/docker-all-status.sh",
+    "infra:clean": "./devops/local/docker-all-clean.sh",
+    
+    "---BUILD---": "echo 'Build commands'",
+    "build": "npm run build:plans && npm run build:customer && npm run build:order",
+    "build:plans": "mvn -f microservices/plans-service/pom.xml clean install -DskipTests",
+    "build:customer": "mvn -f microservices/customer-onboarding-service/pom.xml clean install -DskipTests",
+    "build:order": "mvn -f microservices/order-service/pom.xml clean install -DskipTests",
+    
+    "---SERVICES (Individual - blocks terminal)---": "echo 'Run individual services'",
+    "start:plans": "mvn -f microservices/plans-service/plans-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local",
+    "start:customer": "mvn -f microservices/customer-onboarding-service/customer-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local",
+    "start:order": "mvn -f microservices/order-service/order-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local",
+    
+    "---SERVICES (All - background)---": "echo 'Run all services'",
+    "start:all": "npm run start:all:bg && npm run wait:services",
+    "start:all:bg": "npm run start:plans:bg && npm run start:customer:bg && npm run start:order:bg",
+    "start:plans:bg": "mvn -f microservices/plans-service/plans-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local > logs/plans.log 2>&1 &",
+    "start:customer:bg": "mvn -f microservices/customer-onboarding-service/customer-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local > logs/customer.log 2>&1 &",
+    "start:order:bg": "mvn -f microservices/order-service/order-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local > logs/order.log 2>&1 &",
+    
+    "wait:services": "./scripts/wait-for-services.sh",
+    "stop:all": "./scripts/stop-services.sh",
+    
+    "---SERVICES (macOS - new terminals)---": "echo 'Open each service in new terminal (macOS)'",
+    "start:terminals": "osascript -e 'tell app \"Terminal\" to do script \"cd $(pwd) && npm run start:plans\"' && osascript -e 'tell app \"Terminal\" to do script \"cd $(pwd) && npm run start:customer\"' && osascript -e 'tell app \"Terminal\" to do script \"cd $(pwd) && npm run start:order\"'",
+    
+    "---DATA-GENERATION---": "echo 'Generate synthetic data'",
+    "datagen:plans": "mvn -f microservices/plans-service/plans-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local,datagen",
+    "datagen:customer": "mvn -f microservices/customer-onboarding-service/customer-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local,datagen",
+    "datagen:order": "mvn -f microservices/order-service/order-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local,datagen",
+    
+    "---UTILITIES---": "echo 'Utility commands'",
+    "health": "npm run health:plans; npm run health:customer; npm run health:order",
+    "health:plans": "curl -s http://localhost:8081/actuator/health | jq -r '\"Plans:    \" + (.status // \"DOWN\")'",
+    "health:customer": "curl -s http://localhost:8083/actuator/health | jq -r '\"Customer: \" + (.status // \"DOWN\")'",
+    "health:order": "curl -s http://localhost:8084/actuator/health | jq -r '\"Order:    \" + (.status // \"DOWN\")'",
+    
+    "swagger:plans": "open http://localhost:8081/swagger-ui.html",
+    "swagger:customer": "open http://localhost:8083/swagger-ui.html",
+    "swagger:order": "open http://localhost:8084/swagger-ui.html",
+    "swagger:all": "open http://localhost:8081/swagger-ui.html http://localhost:8083/swagger-ui.html http://localhost:8084/swagger-ui.html",
+    
+    "logs:plans": "tail -f logs/plans.log",
+    "logs:customer": "tail -f logs/customer.log",
+    "logs:order": "tail -f logs/order.log",
+    "logs:all": "tail -f logs/*.log",
+    
+    "---DATABASE---": "echo 'Database commands'",
+    "db:plans": "docker exec -it healthcare-postgres psql -U plans_user -d plans_db",
+    "db:customer": "docker exec -it healthcare-postgres psql -U customer_user -d customer_db",
+    "db:order": "docker exec -it healthcare-postgres psql -U order_user -d order_db",
+    
+    "db:truncate:plans": "docker exec healthcare-postgres psql -U plans_user -d plans_db -c 'TRUNCATE TABLE plan_specialists, plan_providers, specialists, providers, plans CASCADE;'",
+    "db:truncate:customer": "docker exec healthcare-postgres psql -U customer_user -d customer_db -c 'TRUNCATE TABLE customer_plan_enrollments, eligibility_checks, customer_documents, customer_dependents, customer_addresses, customers CASCADE;'",
+    "db:truncate:order": "docker exec healthcare-postgres psql -U order_user -d order_db -c 'TRUNCATE TABLE invoice_line_items, invoices, payments, order_items, orders, saved_payment_methods CASCADE;'",
+    
+    "---DOCKER-LOGS---": "echo 'View docker logs'",
+    "docker:logs:postgres": "docker logs -f healthcare-postgres",
+    "docker:logs:redis": "docker logs -f healthcare-redis",
+    "docker:logs:kafka": "docker logs -f healthcare-kafka",
+    
+    "---TEST---": "echo 'Test commands'",
+    "test:integration": "./scripts/test-integration.sh"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-org/healthcare-plans-ai-platform"
+  },
+  "keywords": [
+    "healthcare",
+    "microservices",
+    "spring-boot",
+    "rag",
+    "llm",
+    "regain"
+  ],
+  "author": "Healthcare Platform Team",
+  "license": "Apache-2.0"
+}

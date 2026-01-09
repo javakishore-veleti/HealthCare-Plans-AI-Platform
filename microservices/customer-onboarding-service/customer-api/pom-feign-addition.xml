@@ -1,0 +1,15 @@
+<!-- Add this dependency to customer-api/pom.xml -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+
+<!-- Add Plans Service client -->
+<dependency>
+    <groupId>com.healthcare.plans</groupId>
+    <artifactId>plans-api-client</artifactId>
+</dependency>
+<dependency>
+    <groupId>com.healthcare.plans</groupId>
+    <artifactId>plans-common</artifactId>
+</dependency>

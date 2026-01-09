@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import java.util.UUID;
 
-@FeignClient(name = "customer-service", url = "${customer.service.url:http://localhost:8082}")
+@FeignClient(name = "customer-service", url = "${customer.service.url:http://localhost:8083}")
 public interface CustomerFeignClient extends CustomerApiClient, EnrollmentApiClient {
 
     // Customer endpoints
@@ -23,6 +23,9 @@ public interface CustomerFeignClient extends CustomerApiClient, EnrollmentApiCli
     @Override
     @GetMapping("/api/v1/customers/email/{email}")
     CustomerDetailResponse getCustomerByEmail(@PathVariable("email") String email);
+
+    @GetMapping("/api/v1/customers/number/{customerNumber}")
+    CustomerDetailResponse getCustomerByNumber(@PathVariable("customerNumber") String customerNumber);
 
     @Override
     @PostMapping("/api/v1/customers/search")
