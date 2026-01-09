@@ -5,6 +5,34 @@
          http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <!-- TODO: Configure this POM -->
+    <parent>
+        <groupId>com.healthcare.customer</groupId>
+        <artifactId>customer-onboarding-service</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>customer-api-client</artifactId>
+    <packaging>jar</packaging>
+
+    <name>Customer Service - API Client</name>
+
+    <dependencies>
+        <dependency>
+            <groupId>com.healthcare.customer</groupId>
+            <artifactId>customer-common</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework</groupId>
+            <artifactId>spring-web</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.springframework.cloud</groupId>
+            <artifactId>spring-cloud-starter-openfeign</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+        </dependency>
+    </dependencies>
 
 </project>

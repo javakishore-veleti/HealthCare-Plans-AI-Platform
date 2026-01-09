@@ -1,0 +1,22 @@
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/customer_db
+    username: customer_user
+    password: customer_password
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 100
+        order_inserts: true
+        order_updates: true
+  flyway:
+    enabled: true
+
+logging:
+  level:
+    com.healthcare.customer.api.datagen: INFO
+    org.hibernate.SQL: WARN

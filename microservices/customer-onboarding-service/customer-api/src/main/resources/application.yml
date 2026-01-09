@@ -1,0 +1,25 @@
+spring:
+  application:
+    name: customer-service
+  profiles:
+    active: local
+
+server:
+  port: 8083
+
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: when_authorized
