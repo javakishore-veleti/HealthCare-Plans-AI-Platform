@@ -11,45 +11,64 @@
     "infra:clean": "./devops/local/docker-all-clean.sh",
     
     "---BUILD---": "echo 'Build commands'",
-    "build": "npm run build:plans && npm run build:customer && npm run build:order",
+    "build": "npm run build:services",
+    "build:services": "npm run build:plans && npm run build:customer && npm run build:order",
     "build:plans": "mvn -f microservices/plans-service/pom.xml clean install -DskipTests",
     "build:customer": "mvn -f microservices/customer-onboarding-service/pom.xml clean install -DskipTests",
     "build:order": "mvn -f microservices/order-service/pom.xml clean install -DskipTests",
+    "build:admin": "cd admin-portal && npm run build",
+    "build:portal": "cd customer-portal && npm run build",
+    "build:frontends": "npm run build:admin && npm run build:portal",
     
-    "---SERVICES (Individual - blocks terminal)---": "echo 'Run individual services'",
+    "---BACKEND-SERVICES---": "echo 'Run backend services'",
     "start:plans": "mvn -f microservices/plans-service/plans-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local",
     "start:customer": "mvn -f microservices/customer-onboarding-service/customer-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local",
     "start:order": "mvn -f microservices/order-service/order-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local",
     
-    "---SERVICES (All - background)---": "echo 'Run all services'",
-    "start:all": "npm run start:all:bg && npm run wait:services",
+    "---FRONTEND-APPS---": "echo 'Run frontend apps'",
+    "start:admin": "cd admin-portal && npm run dev",
+    "start:portal": "cd customer-portal && npm run dev",
+    
+    "---SERVICES-BACKGROUND---": "echo 'Run all services in background'",
     "start:all:bg": "npm run start:plans:bg && npm run start:customer:bg && npm run start:order:bg",
     "start:plans:bg": "mvn -f microservices/plans-service/plans-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local > logs/plans.log 2>&1 &",
     "start:customer:bg": "mvn -f microservices/customer-onboarding-service/customer-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local > logs/customer.log 2>&1 &",
     "start:order:bg": "mvn -f microservices/order-service/order-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local > logs/order.log 2>&1 &",
     
     "wait:services": "./scripts/wait-for-services.sh",
-    "stop:all": "./scripts/stop-services.sh",
     
-    "---SERVICES (macOS - new terminals)---": "echo 'Open each service in new terminal (macOS)'",
-    "start:terminals": "osascript -e 'tell app \"Terminal\" to do script \"cd $(pwd) && npm run start:plans\"' && osascript -e 'tell app \"Terminal\" to do script \"cd $(pwd) && npm run start:customer\"' && osascript -e 'tell app \"Terminal\" to do script \"cd $(pwd) && npm run start:order\"'",
+    "---STOP---": "echo 'Stop services'",
+    "stop:all": "lsof -ti:8081 | xargs kill -9 2>/dev/null; lsof -ti:8083 | xargs kill -9 2>/dev/null; lsof -ti:8084 | xargs kill -9 2>/dev/null; lsof -ti:3000 | xargs kill -9 2>/dev/null; lsof -ti:3001 | xargs kill -9 2>/dev/null; echo 'All services stopped'",
+    "stop:backend": "lsof -ti:8081 | xargs kill -9 2>/dev/null; lsof -ti:8083 | xargs kill -9 2>/dev/null; lsof -ti:8084 | xargs kill -9 2>/dev/null; echo 'Backend services stopped'",
+    "stop:frontend": "lsof -ti:3000 | xargs kill -9 2>/dev/null; lsof -ti:3001 | xargs kill -9 2>/dev/null; echo 'Frontend apps stopped'",
     
     "---DATA-GENERATION---": "echo 'Generate synthetic data'",
     "datagen:plans": "mvn -f microservices/plans-service/plans-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local,datagen",
     "datagen:customer": "mvn -f microservices/customer-onboarding-service/customer-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local,datagen",
     "datagen:order": "mvn -f microservices/order-service/order-api/pom.xml spring-boot:run -Dspring-boot.run.profiles=local,datagen",
     
-    "---UTILITIES---": "echo 'Utility commands'",
-    "health": "npm run health:plans; npm run health:customer; npm run health:order",
+    "---HEALTH---": "echo 'Health checks'",
+    "health": "npm run health:backend; npm run health:frontend",
+    "health:backend": "npm run health:plans; npm run health:customer; npm run health:order",
+    "health:frontend": "npm run health:admin; npm run health:portal",
     "health:plans": "curl -s http://localhost:8081/actuator/health | jq -r '\"Plans:    \" + (.status // \"DOWN\")'",
     "health:customer": "curl -s http://localhost:8083/actuator/health | jq -r '\"Customer: \" + (.status // \"DOWN\")'",
     "health:order": "curl -s http://localhost:8084/actuator/health | jq -r '\"Order:    \" + (.status // \"DOWN\")'",
+    "health:admin": "curl -s http://localhost:3000 > /dev/null && echo 'Admin:    UP' || echo 'Admin:    DOWN'",
+    "health:portal": "curl -s http://localhost:3001 > /dev/null && echo 'Portal:   UP' || echo 'Portal:   DOWN'",
     
+    "---SWAGGER---": "echo 'Swagger UIs'",
     "swagger:plans": "open http://localhost:8081/swagger-ui.html",
     "swagger:customer": "open http://localhost:8083/swagger-ui.html",
     "swagger:order": "open http://localhost:8084/swagger-ui.html",
     "swagger:all": "open http://localhost:8081/swagger-ui.html http://localhost:8083/swagger-ui.html http://localhost:8084/swagger-ui.html",
     
+    "---OPEN-APPS---": "echo 'Open frontend apps'",
+    "open:admin": "open http://localhost:3000",
+    "open:portal": "open http://localhost:3001",
+    "open:all": "open http://localhost:3000 http://localhost:3001",
+    
+    "---LOGS---": "echo 'View logs'",
     "logs:plans": "tail -f logs/plans.log",
     "logs:customer": "tail -f logs/customer.log",
     "logs:order": "tail -f logs/order.log",
@@ -76,14 +95,7 @@
     "type": "git",
     "url": "https://github.com/your-org/healthcare-plans-ai-platform"
   },
-  "keywords": [
-    "healthcare",
-    "microservices",
-    "spring-boot",
-    "rag",
-    "llm",
-    "regain"
-  ],
+  "keywords": ["healthcare", "microservices", "spring-boot", "rag", "llm", "regain"],
   "author": "Healthcare Platform Team",
   "license": "Apache-2.0"
 }
