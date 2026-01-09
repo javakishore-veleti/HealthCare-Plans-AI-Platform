@@ -60,7 +60,7 @@ export default function HomePage() {
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </Link>
-              <Link href="/shop">
+              <Link href="/login">
                 <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10 w-full sm:w-auto">
                   Browse Plans
                 </Button>
@@ -180,7 +180,7 @@ export default function HomePage() {
                   <p className="text-sm text-slate-500 mb-4">{plan.desc}</p>
                   <p className="text-3xl font-bold mb-1">{plan.price}</p>
                   <p className="text-sm text-slate-500 mb-6">starting/month</p>
-                  <Link href="/shop">
+                  <Link href="/login">
                     <Button variant={plan.popular ? "default" : "outline"} className="w-full">
                       View Plans
                     </Button>
